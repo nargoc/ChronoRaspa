@@ -37,6 +37,18 @@
       letter-spacing: 0.2px;
     }
 
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(500px 280px at 18% 12%, rgba(255, 141, 89, 0.14), transparent 65%),
+        radial-gradient(520px 320px at 86% 8%, rgba(123, 86, 255, 0.13), transparent 65%),
+        radial-gradient(540px 300px at 76% 86%, rgba(67, 214, 255, 0.1), transparent 70%);
+      z-index: -1;
+    }
+
     body::before {
       content: "";
       position: fixed;
@@ -127,14 +139,30 @@
     main { padding: 12px; display: grid; gap: 12px; }
 
     .view { display: none; }
-    .view.active { display: block; }
+    .view.active {
+      display: block;
+      animation: viewIn 300ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes viewIn {
+      from { opacity: 0; transform: translateY(8px) scale(0.99); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
 
     .card {
-      background: linear-gradient(180deg, rgba(10,27,44,0.96), rgba(7,21,34,0.96));
-      border: 1px solid #1b5f7f;
+      background: linear-gradient(180deg, rgba(14, 19, 35, 0.78), rgba(10, 15, 28, 0.8));
+      border: 1px solid rgba(135, 156, 217, 0.28);
       border-radius: 16px;
       padding: 12px;
       margin-bottom: 12px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 16px 38px rgba(6, 7, 18, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      animation: cardIn 360ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     h2, h3 { margin: 0 0 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
@@ -165,24 +193,35 @@
     button {
       font-weight: 800;
       cursor: pointer;
+      transition: transform 180ms ease, box-shadow 220ms ease, border-color 220ms ease, filter 220ms ease;
+    }
+
+    button:hover {
+      box-shadow: 0 10px 18px rgba(0, 0, 0, 0.26), 0 0 0 1px rgba(132, 205, 255, 0.18);
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0) scale(0.99);
+      filter: brightness(0.98);
     }
 
     button.primary {
-      background: linear-gradient(180deg, #3ef1ff, #1ea9e8);
-      border-color: #59f2ff;
-      color: #041321;
+      background: linear-gradient(180deg, #8f95ff, #6f74ea);
+      border-color: #a5abff;
+      color: #f3f5ff;
     }
 
     button.success {
-      background: linear-gradient(180deg, #9fffcf, #4ddf9e);
-      border-color: #afffd8;
-      color: #062216;
+      background: linear-gradient(180deg, #7fd7ff, #52b2e5);
+      border-color: #9be4ff;
+      color: #061b2a;
     }
 
     button.danger {
-      background: linear-gradient(180deg, #ff8ca0, #ff5d79);
-      border-color: #ff9eaf;
-      color: #2a0610;
+      background: linear-gradient(180deg, #ff9f84, #ea6d63);
+      border-color: #ffb69f;
+      color: #2a0d06;
     }
 
     button:disabled { opacity: 0.55; cursor: not-allowed; }
@@ -205,10 +244,10 @@
     }
 
     .menu-tile {
-      border: 1px solid #20617f;
+      border: 1px solid rgba(154, 171, 227, 0.28);
       border-radius: 16px;
       padding: 14px 12px;
-      background: linear-gradient(160deg, #0e2d44, #0b1b2b);
+      background: linear-gradient(160deg, rgba(23, 27, 46, 0.85), rgba(14, 17, 31, 0.9));
       text-align: left;
       min-height: 162px;
       min-width: 164px;
@@ -216,6 +255,7 @@
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
+      box-shadow: 0 18px 30px rgba(6, 7, 18, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     }
 
     .menu-tile b { display: block; font-size: 16px; margin-bottom: 6px; }
@@ -290,8 +330,8 @@
 
     #view-home .menu-tile:hover {
       transform: translateY(-3px);
-      border-color: #79edff;
-      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(121, 237, 255, 0.4);
+      border-color: rgba(191, 198, 255, 0.7);
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(176, 185, 255, 0.4);
     }
 
     #view-home .menu-tile:hover .menu-photo {
