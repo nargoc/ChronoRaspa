@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Create Rally">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#132416"/>
+      <stop offset="1" stop-color="#2e4a22"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#g)"/>
+  <rect x="140" y="450" width="360" height="120" rx="20" fill="#dbffe5" opacity="0.9"/>
+  <rect x="420" y="410" width="360" height="130" rx="20" fill="#eafff0" opacity="0.9"/>
+  <rect x="700" y="450" width="360" height="120" rx="20" fill="#dbffe5" opacity="0.9"/>
+  <circle cx="250" cy="570" r="46" fill="#0a2010"/>
+  <circle cx="430" cy="570" r="46" fill="#0a2010"/>
+  <circle cx="530" cy="540" r="46" fill="#0a2010"/>
+  <circle cx="710" cy="540" r="46" fill="#0a2010"/>
+  <circle cx="810" cy="570" r="46" fill="#0a2010"/>
+  <circle cx="990" cy="570" r="46" fill="#0a2010"/>
+  <text x="70" y="100" fill="#cfffdd" font-size="62" font-family="Segoe UI, Arial" font-weight="700">MULTI CAR RALLY</text>
+</svg>

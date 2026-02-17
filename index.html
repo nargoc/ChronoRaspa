@@ -1,0 +1,2997 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Scalex Rally App</title>
+  <style>
+    :root {
+      --bg: #040c14;
+      --panel: #071522;
+      --panel-2: #0a1b2c;
+      --line: #1f4e67;
+      --text: #d9fbff;
+      --muted: #7bb4c7;
+      --ok: #4bffb6;
+      --warn: #ffc14f;
+      --bad: #ff637f;
+      --accent: #40e4ff;
+      --safe-b: env(safe-area-inset-bottom, 0px);
+      --safe-t: env(safe-area-inset-top, 0px);
+      font-family: "Rajdhani", "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 15% 0%, #0d2639, #030b12 56%);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: calc(12px + var(--safe-b));
+      letter-spacing: 0.2px;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 120;
+      background:
+        linear-gradient(90deg, rgba(36,181,255,0.35), rgba(64,228,255,0.16) 45%, rgba(255,193,79,0.2)),
+        repeating-linear-gradient(90deg, rgba(52,111,139,0.12) 0 1px, transparent 1px 60px),
+        repeating-linear-gradient(0deg, rgba(52,111,139,0.1) 0 1px, transparent 1px 60px);
+      pointer-events: none;
+      opacity: 0.58;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(4, 14, 23, 0.9);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid #216686;
+      padding: calc(4px + var(--safe-t)) 8px 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: space-between;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .header-tools {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: nowrap;
+      justify-content: flex-end;
+    }
+
+    .back-btn, .ghost-btn, .mini-btn {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #0d1320;
+      color: var(--text);
+      padding: 10px 12px;
+      font-weight: 700;
+    }
+
+    .back-btn {
+      border-radius: 8px;
+      padding: 4px 7px;
+      font-size: 12px;
+      margin-left: 0;
+      width: auto;
+      min-width: 0;
+    }
+
+    #homeSettingsBtn {
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 12px;
+      width: auto;
+      min-width: 0;
+    }
+
+    .back-btn { display: none; }
+    .back-btn.show { display: inline-block; }
+
+    .title-wrap { min-width: 0; }
+    .title { margin: 0; font-size: 15px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.8px; }
+    .subtitle { margin: 0; font-size: 10px; color: #9dd8ea; text-transform: uppercase; }
+
+    main { padding: 12px; display: grid; gap: 12px; }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .card {
+      background: linear-gradient(180deg, rgba(10,27,44,0.96), rgba(7,21,34,0.96));
+      border: 1px solid #1b5f7f;
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    h2, h3 { margin: 0 0 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+    h2 { font-size: 16px; }
+    h3 { font-size: 14px; }
+    p, .hint { margin: 8px 0 0; color: var(--muted); font-size: 12px; line-height: 1.35; }
+
+    .grid-2, .grid-3 {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+    .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+    input, select, button, textarea {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid #1d5c78;
+      background: #081726;
+      color: var(--text);
+      padding: 12px;
+      font-size: 15px;
+    }
+
+    textarea { min-height: 90px; resize: vertical; }
+
+    button {
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    button.primary {
+      background: linear-gradient(180deg, #3ef1ff, #1ea9e8);
+      border-color: #59f2ff;
+      color: #041321;
+    }
+
+    button.success {
+      background: linear-gradient(180deg, #9fffcf, #4ddf9e);
+      border-color: #afffd8;
+      color: #062216;
+    }
+
+    button.danger {
+      background: linear-gradient(180deg, #ff8ca0, #ff5d79);
+      border-color: #ff9eaf;
+      color: #2a0610;
+    }
+
+    button:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    label {
+      display: block;
+      margin: 10px 0 6px;
+      color: #b7c4db;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .menu-grid {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scroll-snap-type: x mandatory;
+    }
+
+    .menu-tile {
+      border: 1px solid #20617f;
+      border-radius: 16px;
+      padding: 14px 12px;
+      background: linear-gradient(160deg, #0e2d44, #0b1b2b);
+      text-align: left;
+      min-height: 162px;
+      min-width: 164px;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .menu-tile b { display: block; font-size: 16px; margin-bottom: 6px; }
+    .menu-tile span { color: var(--muted); font-size: 12px; }
+
+    #view-home .card {
+      min-height: calc(100vh - 108px - var(--safe-b));
+      display: flex;
+      flex-direction: column;
+    }
+
+    #view-home .menu-grid {
+      flex: 1;
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(150px, 1fr);
+      align-items: stretch;
+      overflow-x: auto;
+      overflow-y: hidden;
+      gap: 10px;
+      padding-bottom: 0;
+    }
+
+    #view-home .menu-tile {
+      min-width: 150px;
+      min-height: 0;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+      padding: 0;
+      justify-content: flex-end;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+
+    #view-home .menu-photo {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: saturate(1.08) contrast(1.05);
+    }
+
+    #view-home .menu-caption {
+      position: relative;
+      z-index: 1;
+      margin-top: auto;
+      padding: 10px 12px 10px;
+      width: 100%;
+      height: 64px;
+      text-align: left;
+      border-top: 1px solid rgba(122, 239, 255, 0.34);
+      background: rgba(8, 24, 37, 0.36);
+      backdrop-filter: blur(2px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    #view-home .menu-caption b,
+    #view-home .menu-caption span {
+      display: block;
+      text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+    }
+
+    #view-home .menu-caption b { line-height: 1.1; }
+    #view-home .menu-caption span {
+      line-height: 1.15;
+      min-height: 26px;
+      overflow: hidden;
+    }
+
+    #view-home .menu-tile:hover {
+      transform: translateY(-3px);
+      border-color: #79edff;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(121, 237, 255, 0.4);
+    }
+
+    #view-home .menu-tile:hover .menu-photo {
+      filter: saturate(1.12) contrast(1.08) brightness(1.03);
+    }
+
+    #view-home .menu-tile:active {
+      transform: translateY(-1px) scale(0.995);
+    }
+
+    .tile-quick .menu-caption { border-top-color: rgba(89, 242, 255, 0.5); }
+    .tile-create .menu-caption { border-top-color: rgba(130, 255, 200, 0.55); }
+    .tile-pilots .menu-caption { border-top-color: rgba(255, 224, 145, 0.55); }
+    .tile-tracks .menu-caption { border-top-color: rgba(133, 210, 255, 0.55); }
+    .tile-history .menu-caption { border-top-color: rgba(255, 178, 212, 0.55); }
+
+    .list { display: grid; gap: 8px; margin-top: 10px; }
+
+    .item {
+      border: 1px solid #1d5672;
+      background: #091825;
+      border-radius: 14px;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: space-between;
+    }
+
+    .item.selected {
+      border-color: #59ddff;
+      background: linear-gradient(160deg, #113047, #0e1d2d);
+      box-shadow: 0 0 0 1px rgba(89, 221, 255, 0.35), 0 10px 28px rgba(0, 0, 0, 0.25);
+    }
+
+    .left-wrap { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      object-fit: cover;
+      border: 1px solid #3a4760;
+      background: #0a0d13;
+      flex-shrink: 0;
+    }
+
+    .avatar.placeholder {
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      color: #d4def0;
+      background: #182336;
+    }
+
+    .meta { min-width: 0; }
+    .meta b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .meta small { color: var(--muted); font-size: 12px; }
+    .actions { display: flex; gap: 6px; }
+
+    .chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .chip {
+      border: 1px solid #2f6f8f;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 11px;
+      color: #cbf6ff;
+      background: #0b1f2f;
+    }
+
+    .ordered-list .item { align-items: flex-start; }
+
+    .race-screen {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 20% 0%, #0a2638, #03080f 55%);
+      z-index: 80;
+      display: none;
+      overflow: auto;
+      padding: calc(12px + var(--safe-t)) 12px calc(84px + var(--safe-b));
+    }
+
+    .race-screen.show { display: block; }
+
+    .race-head {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      padding-bottom: 4px;
+      background: transparent;
+    }
+
+    .badge {
+      padding: 0;
+      font-size: 11px;
+      color: #9cc4d3;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+
+    .race-end-btn {
+      margin-left: auto;
+      width: auto;
+      min-width: 0;
+      padding: 5px 8px;
+      font-size: 11px;
+      border-radius: 8px;
+    }
+
+    .touch-start {
+      margin-top: 14px;
+      border: 1px dashed #4fcfff;
+      border-radius: 18px;
+      padding: 20px 12px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 800;
+      color: #d7e3f7;
+      background: rgba(11, 32, 50, 0.45);
+      min-height: min(52vh, 420px);
+      display: grid;
+      place-items: center;
+    }
+
+    .next-wrap {
+      display: grid;
+      justify-items: center;
+      gap: 10px;
+    }
+
+    .next-label {
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: #ffb15a;
+      text-transform: uppercase;
+    }
+
+    .next-photo {
+      width: min(44vw, 260px);
+      height: min(44vw, 260px);
+      border-radius: 18px;
+      border: 2px solid #58d6ff;
+      object-fit: cover;
+      background: #0b1521;
+      box-shadow: 0 0 20px rgba(88, 214, 255, 0.22);
+    }
+
+    .next-photo.ph {
+      display: grid;
+      place-items: center;
+      font-size: clamp(40px, 9vw, 64px);
+      font-weight: 900;
+      color: #d7f8ff;
+    }
+
+    .next-name {
+      font-size: clamp(28px, 6.5vw, 52px);
+      font-weight: 900;
+      line-height: 1;
+      color: #f0f8ff;
+      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+    }
+
+    .next-tap {
+      font-size: 13px;
+      color: #9fc3d8;
+    }
+
+    .big-time {
+      font-size: clamp(72px, 18vw, 130px);
+      font-weight: 900;
+      text-align: center;
+      margin: 12px 0 8px;
+      letter-spacing: 0.5px;
+      color: #ecfff5;
+      text-shadow: 0 0 16px rgba(88, 232, 160, 0.35);
+    }
+
+    .big-time.running {
+      font-size: clamp(92px, 24vw, 180px);
+    }
+
+    .live-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px;
+      background: #101827;
+    }
+
+    .stat.best {
+      border-color: rgba(255, 168, 71, 0.55);
+      background: linear-gradient(160deg, #261a12, #1b130e);
+    }
+
+    .stat.last {
+      border-color: rgba(255, 196, 104, 0.5);
+      background: linear-gradient(160deg, #2a1f13, #1a150d);
+    }
+
+    .stat .k { font-size: 11px; color: var(--muted); }
+    .stat .v { margin-top: 6px; font-size: 20px; font-weight: 900; }
+
+    .progress {
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px;
+      background: #101827;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .up { color: var(--ok); }
+    .down { color: var(--bad); }
+    .neutral { color: var(--warn); }
+
+    .progress.up {
+      background: linear-gradient(180deg, rgba(255, 170, 84, 0.2), rgba(16, 24, 39, 0.95));
+      border-color: rgba(255, 170, 84, 0.5);
+    }
+
+    .progress.down {
+      background: linear-gradient(180deg, rgba(242, 80, 100, 0.17), rgba(16, 24, 39, 0.95));
+      border-color: rgba(242, 80, 100, 0.5);
+    }
+
+    .progress.neutral {
+      background: linear-gradient(180deg, rgba(244, 190, 33, 0.17), rgba(16, 24, 39, 0.95));
+      border-color: rgba(244, 190, 33, 0.5);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 12px;
+    }
+    th, td {
+      border-bottom: 1px solid #253149;
+      padding: 8px 4px;
+      text-align: left;
+    }
+    th { color: #ccdaf2; }
+    td.right, th.right { text-align: right; }
+
+    .race-screen table th,
+    #historyDetail table th {
+      color: #ffb15a;
+      font-weight: 800;
+      border-bottom-color: #3b2b1d;
+    }
+
+    .race-screen table td,
+    #historyDetail table td {
+      border-bottom-color: #1f2a3c;
+    }
+
+    .result-shell {
+      border: 1px solid #2b354a;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #0a1019, #070d15);
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.28);
+      padding: 12px;
+    }
+
+    .result-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .result-title {
+      margin: 0;
+      color: #f4f8ff;
+      font-size: 16px;
+      letter-spacing: 0.4px;
+    }
+
+    .result-tag {
+      border: 1px solid #6f4721;
+      color: #ffb15a;
+      background: #18120d;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .pilot-cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .pilot-card {
+      border: 1px solid #2b3549;
+      background: #0a111b;
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    .pilot-card-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .result-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 1px solid #4d5e7a;
+      background: #0b1422;
+      flex-shrink: 0;
+    }
+
+    .result-avatar-ph {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      border: 1px solid #5b7094;
+      background: #122138;
+      color: #e6f1ff;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .pilot-card b {
+      color: #f6f9ff;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .pilot-card small {
+      color: #92a8c9;
+      display: block;
+      line-height: 1.35;
+    }
+
+    .pilot-meter {
+      margin-top: 8px;
+      height: 8px;
+      border-radius: 999px;
+      border: 1px solid #2b3548;
+      background: #111a28;
+      overflow: hidden;
+    }
+
+    .pilot-meter > div {
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #ff8e3c, #ffb15a);
+      box-shadow: 0 0 12px rgba(255, 153, 70, 0.45);
+    }
+
+    .pilot-meter-label {
+      margin-top: 4px;
+      font-size: 11px;
+      color: #ffb15a;
+      font-weight: 700;
+    }
+
+    .result-section-title {
+      margin: 12px 0 6px;
+      color: #ffb15a;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-weight: 800;
+    }
+
+    .group-block {
+      margin-top: 8px;
+      border: 1px solid #2a364b;
+      border-radius: 10px;
+      background: #0a111b;
+      overflow: hidden;
+    }
+
+    .group-summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 10px 12px;
+      color: #ffb15a;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      border-bottom: 1px solid #253349;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      user-select: none;
+    }
+
+    .group-summary::-webkit-details-marker { display: none; }
+    .group-block[open] .group-summary { background: #121c2b; }
+
+    .group-meta {
+      color: #93abc8;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .group-body {
+      padding: 0 10px 8px;
+    }
+
+    @media (min-width: 980px) {
+      .result-grid {
+        grid-template-columns: 320px 1fr;
+        align-items: start;
+      }
+    }
+
+    tr.lap-good td { background: rgba(46, 212, 131, 0.08); }
+    tr.lap-bad td { background: rgba(242, 80, 100, 0.08); }
+    tr.lap-neutral td { background: rgba(244, 190, 33, 0.08); }
+
+    @keyframes lapFlash {
+      0% { transform: translateX(8px); opacity: 0; }
+      100% { transform: translateX(0); opacity: 1; }
+    }
+
+    tr.lap-new {
+      animation: lapFlash 260ms ease-out;
+    }
+
+    .selection-hint {
+      margin-top: 6px;
+      color: #b6e4f1;
+      font-size: 12px;
+      background: linear-gradient(90deg, #0c1f31, #10283a);
+      border: 1px solid #2f7393;
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+
+    .sensor-chip {
+      border: 1px solid #2f7393;
+      background: #0b2030;
+      border-radius: 8px;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      color: #c6f5ff;
+      white-space: nowrap;
+    }
+
+    #view-pilots .pilot-layout {
+      display: grid;
+      gap: 12px;
+    }
+
+    .pilot-detail {
+      border: 1px solid #2a637f;
+      border-radius: 12px;
+      background: #0a1622;
+      padding: 10px;
+    }
+
+    .pilot-detail h4 {
+      margin: 0;
+      font-size: 14px;
+      color: #f2f8ff;
+    }
+
+    .pilot-detail .meta {
+      margin-top: 4px;
+      font-size: 12px;
+      color: #9cb8d8;
+    }
+
+    .entity-view {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .entity-col {
+      min-width: 0;
+    }
+
+    .entity-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .entity-head button {
+      width: auto;
+      min-width: 0;
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      background: rgba(3, 8, 14, 0.72);
+      backdrop-filter: blur(3px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+    }
+
+    .modal-card {
+      width: min(640px, 96vw);
+      max-height: 90vh;
+      overflow: auto;
+      border: 1px solid #2d6783;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #0c1e2f, #0a1725);
+      padding: 12px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.38);
+    }
+
+    .semaphore-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      display: none;
+      background: radial-gradient(circle at 50% 22%, #0d1118, #000000 70%);
+      place-items: stretch;
+      padding: 0;
+    }
+
+    .semaphore-screen.show { display: grid; }
+
+    .sema-body {
+      width: 100vw;
+      height: 100vh;
+      border: none;
+      border-radius: 0;
+      background: radial-gradient(circle at 50% 14%, #101a26, #05080e 72%);
+      padding: calc(10px + var(--safe-t)) 12px 18px;
+      box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sema-title {
+      text-align: center;
+      font-size: 13px;
+      color: #9ab1d0;
+      margin-bottom: 10px;
+      letter-spacing: 0.6px;
+      font-weight: 800;
+    }
+
+    .light-wall {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(6, min-content);
+      gap: 6px;
+      align-items: stretch;
+      justify-content: center;
+      justify-items: center;
+      width: auto;
+      padding: 4px 0;
+      margin: 0 auto;
+    }
+
+    .light-stack {
+      display: grid;
+      grid-template-rows: repeat(4, 1fr);
+      gap: 8px;
+      justify-items: center;
+      align-items: center;
+      height: 100%;
+    }
+
+    .light {
+      width: min(12vh, 94px);
+      height: min(12vh, 94px);
+      border-radius: 50%;
+      border: 2px solid #2c3443;
+      background: #1a202b;
+      box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.65);
+    }
+
+    @media (orientation: landscape) {
+      .light { width: min(13.5vh, 102px); height: min(13.5vh, 102px); }
+      .light-wall { gap: 8px; }
+      .light-stack { gap: 10px; }
+    }
+
+    .light.red.on { background: #ff2f3d; box-shadow: 0 0 22px #ff2f3d, 0 0 42px rgba(255, 47, 61, 0.5); border-color: #ff4d5a; }
+    .light.amber.on { background: #ffc624; box-shadow: 0 0 24px #ffc624, 0 0 44px rgba(255, 198, 36, 0.5); border-color: #ffd961; }
+    .light.green.on { background: #2ee37d; box-shadow: 0 0 24px #2ee37d, 0 0 44px rgba(46, 227, 125, 0.5); border-color: #66f0a1; }
+
+    .sema-msg {
+      margin-top: 12px;
+      text-align: center;
+      font-size: 14px;
+      color: #c9d8ef;
+      min-height: 22px;
+    }
+
+    .ble-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #c6f5ff;
+      white-space: nowrap;
+    }
+
+    .ble-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #35566d;
+      border: 1px solid #5a8aa6;
+    }
+
+    .ble-dot.on { background: #3ef4b0; border-color: #93ffdc; box-shadow: 0 0 12px rgba(62, 244, 176, 0.6); }
+    .lap-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #35566d;
+      transition: 220ms transform, 220ms background;
+    }
+    .lap-dot.flash { background: #ffc629; box-shadow: 0 0 12px rgba(255, 198, 41, 0.6); transform: scale(1.35); }
+
+    .hide { display: none !important; }
+
+    @media (orientation: landscape) {
+      main {
+        max-width: 100vw;
+        margin: 0;
+        padding: 10px 14px;
+      }
+      .view.active {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        align-items: start;
+      }
+      #view-home.view.active { display: block; }
+      #view-pilots.view.active,
+      #view-tracks.view.active { display: block; }
+      .grid-2 { grid-template-columns: 1fr 1fr; }
+      #view-home .card { min-height: calc(100vh - 96px - var(--safe-b)); }
+      #view-home .menu-grid {
+        grid-auto-flow: row;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        grid-auto-columns: auto;
+        overflow: hidden;
+      }
+      #view-home .menu-tile { min-width: 0; }
+      #view-pilots .entity-view,
+      #view-tracks .entity-view {
+        grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.1fr);
+      }
+      #view-quick .card,
+      #view-create .card,
+      #view-pilots .card,
+      #view-tracks .card,
+      #view-history .card,
+      #view-settings .card,
+      #view-pilots .pilot-layout {
+        margin-bottom: 0;
+      }
+      #view-settings .card:last-child {
+        grid-column: 1 / -1;
+      }
+      .race-screen {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <button class="back-btn" id="backBtn">Atras</button>
+      <div class="title-wrap">
+        <h1 class="title" id="appTitle">Scalex Rally</h1>
+        <div class="subtitle" id="appSubtitle">Crono BLE sin camara</div>
+      </div>
+    </div>
+    <div class="header-tools">
+      <div class="sensor-chip" title="Estado BLE"><span class="ble-dot" id="bleDot"></span></div>
+      <div class="sensor-chip" title="Paso sensor"><span class="lap-dot" id="lapDot"></span></div>
+      <button id="homeSettingsBtn" class="mini-btn">Settings</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="view active" id="view-home">
+      <div class="card">
+        <div class="menu-grid">
+          <button class="menu-tile tile-quick" data-nav="quick">
+            <img class="menu-photo" src="assets/home/quick.png" onerror="this.onerror=null;this.src='assets/home/quick.svg';" alt="Coche WRC" loading="lazy">
+            <div class="menu-caption"><b>Rally rapido</b><span>1 piloto, vueltas ilimitadas</span></div>
+          </button>
+          <button class="menu-tile tile-create" data-nav="create">
+            <img class="menu-photo" src="assets/home/create.png" onerror="this.onerror=null;this.src='assets/home/create.svg';" alt="Coches de rally en carrera" loading="lazy">
+            <div class="menu-caption"><b>Crear nuevo Rally</b><span>Orden, tandas y vueltas</span></div>
+          </button>
+          <button class="menu-tile tile-pilots" data-nav="pilots">
+            <img class="menu-photo" src="assets/home/pilots.png" onerror="this.onerror=null;this.src='assets/home/pilots.svg';" alt="Piloto de rally" loading="lazy">
+            <div class="menu-caption"><b>Pilotos</b><span>Alta, edicion, foto</span></div>
+          </button>
+          <button class="menu-tile tile-tracks" data-nav="tracks">
+            <img class="menu-photo" src="assets/home/tracks.png" onerror="this.onerror=null;this.src='assets/home/tracks.svg';" alt="Tramo de Rally Finlandia" loading="lazy">
+            <div class="menu-caption"><b>Tracks</b><span>Circuitos y mejores tiempos</span></div>
+          </button>
+          <button class="menu-tile tile-history" data-nav="history">
+            <img class="menu-photo" src="assets/home/history.png" onerror="this.onerror=null;this.src='assets/home/history.svg';" alt="Boxes de rally" loading="lazy">
+            <div class="menu-caption"><b>Historial</b><span>Rallies corridos y detalle</span></div>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-quick">
+      <div class="card">
+        <h2>Seleccion de salida</h2>
+        <label>Piloto</label>
+        <select id="quickPilot"></select>
+        <div class="selection-hint" id="quickPilotInfo">Piloto seleccionado: --</div>
+        <div class="grid-2">
+          <button id="quickNewPilot" class="ghost-btn">Crear piloto</button>
+          <button id="quickRefreshPilot" class="ghost-btn">Recargar</button>
+        </div>
+
+        <label>Track</label>
+        <select id="quickTrack"></select>
+        <div class="selection-hint" id="quickTrackInfo">Track seleccionado: --</div>
+        <div class="grid-2">
+          <button id="quickNewTrack" class="ghost-btn">Crear track</button>
+          <button id="quickRefreshTrack" class="ghost-btn">Recargar</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Sesion</h2>
+        <p>Configura la penalizacion y arranca cuando este listo.</p>
+
+        <label>Penalizacion salida falsa (seg)</label>
+        <input id="quickPenaltySec" type="number" min="0" max="30" step="1" value="3">
+
+        <div class="grid-2">
+          <button id="startQuick" class="primary">Empezar quick rally</button>
+          <button id="quickToSettings">Configurar BLE</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-create">
+      <div class="card">
+        <h2>Crear nuevo Rally</h2>
+        <label>Nombre</label>
+        <input id="rallyName" type="text" placeholder="Ej: Rally Casa Noche">
+
+        <label>Track</label>
+        <select id="createTrack"></select>
+        <div class="selection-hint" id="createTrackInfo">Track seleccionado: --</div>
+        <div class="grid-2">
+          <button id="createNewTrack">Crear track</button>
+          <button id="createRefreshTrack">Recargar</button>
+        </div>
+
+        <label>Vueltas por tanda</label>
+        <input id="lapsPerHeat" type="number" min="1" max="200" step="1" value="6">
+
+        <label>Numero de tandas</label>
+        <input id="heatCount" type="number" min="1" max="20" step="1" value="1">
+
+        <label>Penalizacion salida falsa (seg)</label>
+        <input id="createPenaltySec" type="number" min="0" max="30" step="1" value="3">
+      </div>
+
+      <div class="card">
+        <h3>Orden de pilotos</h3>
+        <label>Anadir piloto</label>
+        <select id="createPilotSelect"></select>
+        <div class="grid-2">
+          <button id="addPilotOrder" class="primary">Anadir al orden</button>
+          <button id="createNewPilot">Crear piloto</button>
+        </div>
+        <div class="list ordered-list" id="pilotOrderList"></div>
+        <div class="hint">Usa subir/bajar para ordenar la salida.</div>
+        <div class="grid-2">
+          <button id="startCreatedRally" class="primary">Iniciar rally</button>
+          <button id="clearPilotOrder" class="danger">Limpiar orden</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-pilots">
+      <div class="card entity-view">
+        <div class="entity-col">
+          <div class="entity-head">
+            <h3>Listado pilotos</h3>
+            <button id="openPilotCreate" class="primary">Anadir nuevo</button>
+          </div>
+          <div class="hint">Toca un piloto para ver historial de rallies y tiempos.</div>
+          <div class="list" id="pilotList"></div>
+        </div>
+        <div class="entity-col">
+          <h3>Detalle piloto</h3>
+          <div id="pilotDetail" class="hint">Selecciona un piloto para ver sus rallies, tramos y tiempos.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-tracks">
+      <div class="card entity-view">
+        <div class="entity-col">
+          <div class="entity-head">
+            <h3>Listado tracks</h3>
+            <button id="openTrackCreate" class="primary">Anadir nuevo</button>
+          </div>
+          <div class="hint">Toca un track para ver detalle y mejores tiempos.</div>
+          <div class="list" id="trackList"></div>
+        </div>
+        <div class="entity-col">
+          <h3>Detalle track</h3>
+          <div id="trackDetail" class="hint">Selecciona un track para ver rallies y tiempos por piloto.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-history">
+      <div class="card">
+        <h2>Historial de rallies</h2>
+        <div class="grid-2">
+          <button id="shareLastHistory" class="primary">Compartir ultimo</button>
+          <button id="clearHistory" class="danger">Borrar historial</button>
+        </div>
+        <div class="selection-hint" id="historySelectedHint">Rally seleccionado: ninguno</div>
+        <div class="list" id="historyList"></div>
+      </div>
+
+      <div class="card">
+        <h3>Detalle</h3>
+        <div id="historyDetail" class="hint">Selecciona un rally para ver detalle.</div>
+      </div>
+    </section>
+
+    <section class="view" id="view-settings">
+      <div class="card">
+        <h2>Perfiles</h2>
+        <label>Perfil activo</label>
+        <select id="profileSelect"></select>
+        <label>Nuevo perfil</label>
+        <input id="newProfileName" type="text" placeholder="Ej: Club Sabado">
+        <div class="grid-2">
+          <button id="createProfile" class="primary">Crear perfil</button>
+          <button id="deleteProfile" class="danger">Borrar perfil</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>BLE</h2>
+        <div class="grid-2">
+          <button id="bleConnect" class="primary">Conectar BLE</button>
+          <button id="bleDisconnect">Desconectar</button>
+        </div>
+        <div class="hint" id="bleStatusText">Estado: desconectado</div>
+
+        <label>Threshold (thr)</label>
+        <input id="bleThr" type="range" min="0" max="1023" step="1" value="450">
+        <div class="hint">Valor: <b id="bleThrVal">450</b></div>
+
+        <label>Hysteresis (hyst)</label>
+        <input id="bleHyst" type="range" min="0" max="512" step="1" value="40">
+        <div class="hint">Valor: <b id="bleHystVal">40</b></div>
+
+        <label>Debounce (ms)</label>
+        <input id="bleDebounce" type="range" min="0" max="1000" step="1" value="30">
+        <div class="hint">Valor: <b id="bleDebounceVal">30</b></div>
+
+        <label>Holdoff (ms)</label>
+        <input id="bleHoldoff" type="range" min="0" max="5000" step="10" value="250">
+        <div class="hint">Valor: <b id="bleHoldoffVal">250</b></div>
+
+        <label>Min lap (ms)</label>
+        <input id="bleMinlap" type="range" min="0" max="60000" step="100" value="15000">
+        <div class="hint">Valor: <b id="bleMinlapVal">15000</b></div>
+
+        <label>Invertir deteccion</label>
+        <select id="bleInvert">
+          <option value="0">No</option>
+          <option value="1">Si</option>
+        </select>
+
+        <label>EMA alpha (%)</label>
+        <input id="bleAlpha" type="range" min="1" max="100" step="1" value="35">
+        <div class="hint">Valor: <b id="bleAlphaVal">35</b></div>
+
+        <label>Sample period (ms)</label>
+        <input id="bleSample" type="range" min="1" max="200" step="1" value="15">
+        <div class="hint">Valor: <b id="bleSampleVal">15</b></div>
+
+        <div class="grid-3">
+          <button id="bleApply" class="primary">Aplicar al Arduino</button>
+          <button id="bleGet">Leer Arduino</button>
+          <button id="saveBleProfile" class="success">Guardar en perfil</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Defaults app</h2>
+        <label>Penalizacion salida falsa (seg)</label>
+        <input id="defaultPenalty" type="number" min="0" max="30" step="1" value="3">
+        <label>Nombre por defecto rally</label>
+        <input id="defaultRallyName" type="text" value="Rally Session">
+        <button id="saveDefaults" class="primary">Guardar defaults</button>
+      </div>
+    </section>
+  </main>
+
+  <section class="modal-backdrop" id="pilotModal">
+    <div class="modal-card">
+      <h3 id="pilotModalTitle">Nuevo piloto</h3>
+      <input type="hidden" id="pilotEditId">
+      <label>Nombre</label>
+      <input id="pilotName" type="text" placeholder="Nombre piloto">
+      <label>Iniciales (3)</label>
+      <input id="pilotInitials" type="text" maxlength="3" placeholder="ABC">
+      <label>Foto</label>
+      <input id="pilotPhoto" type="file" accept="image/*" capture="environment">
+      <div class="grid-3">
+        <button id="savePilot" class="primary">Guardar</button>
+        <button id="resetPilotForm">Limpiar</button>
+        <button id="cancelPilotEdit" class="danger">Cerrar</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="modal-backdrop" id="trackModal">
+    <div class="modal-card">
+      <h3 id="trackModalTitle">Nuevo track</h3>
+      <input type="hidden" id="trackEditId">
+      <label>Nombre</label>
+      <input id="trackName" type="text" placeholder="Nombre circuito">
+      <label>Distancia opcional (metros)</label>
+      <input id="trackDistance" type="number" min="1" step="1" placeholder="Opcional">
+      <label>Foto</label>
+      <input id="trackPhoto" type="file" accept="image/*" capture="environment">
+      <div class="grid-3">
+        <button id="saveTrack" class="primary">Guardar</button>
+        <button id="resetTrackForm">Limpiar</button>
+        <button id="cancelTrackEdit" class="danger">Cerrar</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="race-screen" id="raceScreen">
+    <div class="race-head">
+      <div class="badge" id="racePilotBadge">Piloto: --</div>
+      <div class="badge" id="raceTrackBadge">Track: --</div>
+      <div class="badge" id="raceLapBadge">Vuelta: 0</div>
+      <div class="badge" id="raceModeBadge">Modo: --</div>
+      <button id="finishRoundBtn" class="mini-btn danger race-end-btn">Finalizar</button>
+    </div>
+
+    <div class="touch-start" id="touchStartBox">Toca para iniciar salida</div>
+
+    <div class="big-time" id="raceBigTime">00:00.000</div>
+
+    <div class="live-grid" id="raceLiveGrid">
+      <div class="stat last" id="raceLastStat"><div class="k">Ultima vuelta</div><div class="v" id="raceLastLap">--:--.---</div></div>
+      <div class="stat best" id="raceBestStat"><div class="k">Mejor vuelta</div><div class="v" id="raceBestLap">--:--.---</div></div>
+    </div>
+
+    <div class="progress" id="raceProgress">Progresion: --</div>
+    <div class="hint" id="raceMiniMsg">Esperando toque para semaforo...</div>
+
+    <div class="card" id="raceLapsCard">
+      <h3>Vueltas</h3>
+      <table>
+        <thead>
+          <tr><th>#</th><th class="right">Tiempo</th><th class="right">Delta</th><th>Estado</th></tr>
+        </thead>
+        <tbody id="raceLapTable"></tbody>
+      </table>
+    </div>
+
+  </section>
+
+  <section class="semaphore-screen" id="semaphoreScreen">
+    <div class="sema-body">
+      <div class="sema-title">SALIDA</div>
+      <div class="light-wall">
+        <div class="light-stack">
+          <div class="light red" data-light="L1"></div>
+          <div class="light red" data-light="L2"></div>
+          <div class="light amber" data-light="L3"></div>
+          <div class="light green" data-light="L4"></div>
+        </div>
+        <div class="light-stack">
+          <div class="light red" data-light="L1"></div>
+          <div class="light red" data-light="L2"></div>
+          <div class="light amber" data-light="L3"></div>
+          <div class="light green" data-light="L4"></div>
+        </div>
+        <div class="light-stack">
+          <div class="light red" data-light="L1"></div>
+          <div class="light red" data-light="L2"></div>
+          <div class="light amber" data-light="L3"></div>
+          <div class="light green" data-light="L4"></div>
+        </div>
+        <div class="light-stack">
+          <div class="light red" data-light="L1"></div>
+          <div class="light red" data-light="L2"></div>
+          <div class="light amber" data-light="L3"></div>
+          <div class="light green" data-light="L4"></div>
+        </div>
+        <div class="light-stack">
+          <div class="light red" data-light="L1"></div>
+          <div class="light red" data-light="L2"></div>
+          <div class="light amber" data-light="L3"></div>
+          <div class="light green" data-light="L4"></div>
+        </div>
+        <div class="light-stack">
+          <div class="light red" data-light="L1"></div>
+          <div class="light red" data-light="L2"></div>
+          <div class="light amber" data-light="L3"></div>
+          <div class="light green" data-light="L4"></div>
+        </div>
+      </div>
+      <div class="sema-msg" id="semaMsg">Preparado...</div>
+    </div>
+  </section>
+
+  <script>
+    (() => {
+      const STORE_KEY = "scalex_rally_app_v2";
+      const NUS_SERVICE = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+      const NUS_RX = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+      const NUS_TX = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+      const te = new TextEncoder();
+      const td = new TextDecoder();
+
+      const appTitle = document.getElementById("appTitle");
+      const appSubtitle = document.getElementById("appSubtitle");
+      const backBtn = document.getElementById("backBtn");
+
+      const views = {
+        home: document.getElementById("view-home"),
+        quick: document.getElementById("view-quick"),
+        create: document.getElementById("view-create"),
+        pilots: document.getElementById("view-pilots"),
+        tracks: document.getElementById("view-tracks"),
+        history: document.getElementById("view-history"),
+        settings: document.getElementById("view-settings")
+      };
+
+      const raceScreen = document.getElementById("raceScreen");
+      const semaphoreScreen = document.getElementById("semaphoreScreen");
+      const semaMsg = document.getElementById("semaMsg");
+      const semaLights = {
+        L1: [...document.querySelectorAll('[data-light="L1"]')],
+        L2: [...document.querySelectorAll('[data-light="L2"]')],
+        L3: [...document.querySelectorAll('[data-light="L3"]')],
+        L4: [...document.querySelectorAll('[data-light="L4"]')]
+      };
+
+      const bleDot = document.getElementById("bleDot");
+      const lapDot = document.getElementById("lapDot");
+      const bleStatusText = document.getElementById("bleStatusText");
+
+      const bleFields = {
+        thr: document.getElementById("bleThr"),
+        hyst: document.getElementById("bleHyst"),
+        debounce: document.getElementById("bleDebounce"),
+        holdoff: document.getElementById("bleHoldoff"),
+        minlap: document.getElementById("bleMinlap"),
+        invert: document.getElementById("bleInvert"),
+        alpha: document.getElementById("bleAlpha"),
+        sample: document.getElementById("bleSample")
+      };
+
+      const bleValueRefs = {
+        thr: document.getElementById("bleThrVal"),
+        hyst: document.getElementById("bleHystVal"),
+        debounce: document.getElementById("bleDebounceVal"),
+        holdoff: document.getElementById("bleHoldoffVal"),
+        minlap: document.getElementById("bleMinlapVal"),
+        alpha: document.getElementById("bleAlphaVal"),
+        sample: document.getElementById("bleSampleVal")
+      };
+
+      const raceUI = {
+        pilotBadge: document.getElementById("racePilotBadge"),
+        trackBadge: document.getElementById("raceTrackBadge"),
+        lapBadge: document.getElementById("raceLapBadge"),
+        modeBadge: document.getElementById("raceModeBadge"),
+        touchBox: document.getElementById("touchStartBox"),
+        bigTime: document.getElementById("raceBigTime"),
+        liveGrid: document.getElementById("raceLiveGrid"),
+        lastLap: document.getElementById("raceLastLap"),
+        bestLap: document.getElementById("raceBestLap"),
+        progress: document.getElementById("raceProgress"),
+        mini: document.getElementById("raceMiniMsg"),
+        lapTable: document.getElementById("raceLapTable"),
+        lapsCard: document.getElementById("raceLapsCard")
+      };
+
+      const quickPilotInfo = document.getElementById("quickPilotInfo");
+      const quickTrackInfo = document.getElementById("quickTrackInfo");
+      const createTrackInfo = document.getElementById("createTrackInfo");
+      const historySelectedHint = document.getElementById("historySelectedHint");
+
+      function uid() {
+        return Math.random().toString(16).slice(2) + Date.now().toString(16);
+      }
+
+      function fmt(ms) {
+        if (!isFinite(ms)) return "--:--.---";
+        const s = Math.floor(ms / 1000);
+        const m = Math.floor(s / 60);
+        const ss = s % 60;
+        const rem = Math.floor(ms - s * 1000);
+        return String(m).padStart(2, "0") + ":" + String(ss).padStart(2, "0") + "." + String(rem).padStart(3, "0");
+      }
+
+      function nowIso() {
+        return new Date().toISOString();
+      }
+
+      function mean(arr) {
+        if (!arr.length) return NaN;
+        return arr.reduce((a, b) => a + b, 0) / arr.length;
+      }
+
+      function stddev(arr) {
+        if (arr.length < 2) return 0;
+        const m = mean(arr);
+        const v = mean(arr.map(vv => (vv - m) * (vv - m)));
+        return Math.sqrt(v);
+      }
+
+      function sanitizeName(s) {
+        return String(s || "").trim();
+      }
+
+      function toInitials(s) {
+        return String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3);
+      }
+
+      function makeDefaultStore() {
+        const pid = uid();
+        return {
+          activeProfileId: pid,
+          profiles: [{
+            id: pid,
+            name: "Default",
+            bleConfig: { thr: 450, hyst: 40, debounce: 30, holdoff: 250, minlap: 15000, invert: 0, alpha: 35, sample: 15 },
+            defaults: { penaltySec: 3, rallyName: "Rally Session" }
+          }],
+          pilots: [],
+          tracks: [],
+          rallies: []
+        };
+      }
+
+      function normalizeStore(input) {
+        const base = makeDefaultStore();
+        if (!input || typeof input !== "object") return base;
+
+        const out = {
+          activeProfileId: input.activeProfileId || base.activeProfileId,
+          profiles: Array.isArray(input.profiles) ? input.profiles : base.profiles,
+          pilots: Array.isArray(input.pilots) ? input.pilots : [],
+          tracks: Array.isArray(input.tracks) ? input.tracks : [],
+          rallies: Array.isArray(input.rallies) ? input.rallies : []
+        };
+
+        if (!out.profiles.length) out.profiles = base.profiles;
+        if (!out.profiles.some(p => p.id === out.activeProfileId)) out.activeProfileId = out.profiles[0].id;
+
+        out.profiles = out.profiles.map(p => ({
+          id: p.id || uid(),
+          name: p.name || "Default",
+          bleConfig: {
+            thr: Number(p.bleConfig?.thr ?? 450),
+            hyst: Number(p.bleConfig?.hyst ?? 40),
+            debounce: Number(p.bleConfig?.debounce ?? 30),
+            holdoff: Number(p.bleConfig?.holdoff ?? 250),
+            minlap: Number(p.bleConfig?.minlap ?? 15000),
+            invert: Number(p.bleConfig?.invert ?? 0),
+            alpha: Number(p.bleConfig?.alpha ?? 35),
+            sample: Number(p.bleConfig?.sample ?? 15)
+          },
+          defaults: {
+            penaltySec: Number(p.defaults?.penaltySec ?? 3),
+            rallyName: String(p.defaults?.rallyName ?? "Rally Session")
+          }
+        }));
+
+        if (!out.profiles.some(p => p.id === out.activeProfileId)) out.activeProfileId = out.profiles[0].id;
+
+        return out;
+      }
+
+      function loadStore() {
+        try {
+          const raw = localStorage.getItem(STORE_KEY);
+          const parsed = raw ? JSON.parse(raw) : null;
+          return normalizeStore(parsed);
+        } catch {
+          return makeDefaultStore();
+        }
+      }
+
+      const store = loadStore();
+
+      function saveStore(showError = true) {
+        try {
+          localStorage.setItem(STORE_KEY, JSON.stringify(store));
+          return true;
+        } catch (e) {
+          if (showError) {
+            alert("No se pudo guardar en el movil. Reduce tamano de fotos o limpia historial.");
+          }
+          return false;
+        }
+      }
+
+      function getActiveProfile() {
+        return store.profiles.find(p => p.id === store.activeProfileId) || store.profiles[0];
+      }
+
+      function getPilot(id) {
+        return store.pilots.find(p => p.id === id) || null;
+      }
+
+      function getTrack(id) {
+        return store.tracks.find(t => t.id === id) || null;
+      }
+
+      function updateSelectionInfo() {
+        const qp = getPilot(document.getElementById("quickPilot").value);
+        const qt = getTrack(document.getElementById("quickTrack").value);
+        const ct = getTrack(document.getElementById("createTrack").value);
+        quickPilotInfo.textContent = "Piloto seleccionado: " + (qp ? (qp.name + " (" + qp.initials + ")") : "--");
+        quickTrackInfo.textContent = "Track seleccionado: " + (qt ? qt.name : "--");
+        createTrackInfo.textContent = "Track seleccionado: " + (ct ? ct.name : "--");
+      }
+
+      async function fileToDataUrl(file) {
+        if (!file) return "";
+        if (!String(file.type || "").startsWith("image/")) {
+          return await new Promise((resolve, reject) => {
+            const fr = new FileReader();
+            fr.onload = () => resolve(String(fr.result || ""));
+            fr.onerror = reject;
+            fr.readAsDataURL(file);
+          });
+        }
+
+        const url = URL.createObjectURL(file);
+        try {
+          const img = await new Promise((resolve, reject) => {
+            const el = new Image();
+            el.onload = () => resolve(el);
+            el.onerror = reject;
+            el.src = url;
+          });
+
+          const maxSide = 720;
+          const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+          const w = Math.max(1, Math.round(img.width * scale));
+          const h = Math.max(1, Math.round(img.height * scale));
+          const canvas = document.createElement("canvas");
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, w, h);
+          return canvas.toDataURL("image/jpeg", 0.78);
+        } finally {
+          URL.revokeObjectURL(url);
+        }
+      }
+
+      function renderAvatar(photo, initials) {
+        if (photo) return '<img class="avatar" src="' + photo + '" alt="foto">';
+        return '<div class="avatar placeholder">' + (initials || "--") + '</div>';
+      }
+
+      let currentView = "home";
+      function go(viewName) {
+        currentView = viewName;
+        Object.keys(views).forEach(k => views[k].classList.toggle("active", k === viewName));
+        backBtn.classList.toggle("show", viewName !== "home");
+        const labels = {
+          home: ["Scalex Rally", "Crono BLE sin camara"],
+          quick: ["Rally rapido", "Vueltas ilimitadas"],
+          create: ["Crear Rally", "Orden, tandas y vueltas"],
+          pilots: ["Pilotos", "CRUD y estadisticas"],
+          tracks: ["Tracks", "CRUD y records"],
+          history: ["Historial", "Resultados guardados"],
+          settings: ["Settings", "BLE y perfiles"]
+        };
+        appTitle.textContent = labels[viewName][0];
+        appSubtitle.textContent = labels[viewName][1];
+      }
+
+      backBtn.addEventListener("click", () => go("home"));
+      document.querySelectorAll("[data-nav]").forEach(btn => btn.addEventListener("click", () => go(btn.dataset.nav)));
+      document.getElementById("homeSettingsBtn").addEventListener("click", () => go("settings"));
+
+      let audioCtx = null;
+      function ensureAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+      }
+
+      function beep(freq, dur, type, gain) {
+        ensureAudio();
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        g.gain.value = gain;
+        osc.connect(g).connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + dur);
+      }
+
+      const soundLap = () => beep(1300, 0.08, "square", 0.06);
+      const soundStart = () => beep(1650, 0.22, "sawtooth", 0.06);
+      const soundFinish = () => beep(900, 0.16, "triangle", 0.08);
+      const soundLastLap = () => beep(1800, 0.1, "sine", 0.07);
+      const soundPenalty = () => beep(260, 0.26, "sawtooth", 0.08);
+      const soundCount = () => beep(1250, 0.1, "square", 0.07);
+      const soundHorn = () => beep(420, 0.5, "sawtooth", 0.09);
+
+      function showOnlyNextPilot(showOnly) {
+        [raceUI.bigTime, raceUI.liveGrid, raceUI.progress, raceUI.mini, raceUI.lapsCard].forEach(el => {
+          el.classList.toggle("hide", showOnly);
+        });
+        raceUI.touchBox.classList.toggle("hide", !showOnly);
+      }
+
+      const bleState = {
+        device: null,
+        server: null,
+        rxChar: null,
+        txChar: null,
+        lineBuf: "",
+        connected: false
+      };
+
+      function setBleUi(connected, text) {
+        bleState.connected = connected;
+        bleDot.classList.toggle("on", connected);
+        bleStatusText.textContent = "Estado: " + text;
+      }
+
+      function flashLapBottom() {
+        lapDot.classList.add("flash");
+        setTimeout(() => lapDot.classList.remove("flash"), 260);
+      }
+
+      async function bleSend(text) {
+        if (!bleState.rxChar) throw new Error("BLE no conectado");
+        const data = te.encode(text);
+        for (let i = 0; i < data.length; i += 20) {
+          await bleState.rxChar.writeValue(data.slice(i, i + 20));
+        }
+      }
+
+      function readBleFields() {
+        return {
+          thr: Number(bleFields.thr.value),
+          hyst: Number(bleFields.hyst.value),
+          debounce: Number(bleFields.debounce.value),
+          holdoff: Number(bleFields.holdoff.value),
+          minlap: Number(bleFields.minlap.value),
+          invert: Number(bleFields.invert.value),
+          alpha: Number(bleFields.alpha.value),
+          sample: Number(bleFields.sample.value)
+        };
+      }
+
+      function paintBleFieldValues() {
+        bleValueRefs.thr.textContent = bleFields.thr.value;
+        bleValueRefs.hyst.textContent = bleFields.hyst.value;
+        bleValueRefs.debounce.textContent = bleFields.debounce.value;
+        bleValueRefs.holdoff.textContent = bleFields.holdoff.value;
+        bleValueRefs.minlap.textContent = bleFields.minlap.value;
+        bleValueRefs.alpha.textContent = bleFields.alpha.value;
+        bleValueRefs.sample.textContent = bleFields.sample.value;
+      }
+
+      function applyBleToForm(cfg) {
+        bleFields.thr.value = String(cfg.thr ?? 450);
+        bleFields.hyst.value = String(cfg.hyst ?? 40);
+        bleFields.debounce.value = String(cfg.debounce ?? 30);
+        bleFields.holdoff.value = String(cfg.holdoff ?? 250);
+        bleFields.minlap.value = String(cfg.minlap ?? 15000);
+        bleFields.invert.value = String(cfg.invert ?? 0);
+        bleFields.alpha.value = String(cfg.alpha ?? 35);
+        bleFields.sample.value = String(cfg.sample ?? 15);
+        paintBleFieldValues();
+      }
+
+      function parseCfgLine(line) {
+        const parts = line.split(" ");
+        const map = {};
+        parts.forEach(p => {
+          const kv = p.split("=");
+          if (kv.length === 2) map[kv[0].trim()] = kv[1].trim();
+        });
+        const cfg = {
+          thr: Number(map.thr ?? bleFields.thr.value),
+          hyst: Number(map.hyst ?? bleFields.hyst.value),
+          debounce: Number(map.debounce ?? bleFields.debounce.value),
+          holdoff: Number(map.holdoff ?? bleFields.holdoff.value),
+          minlap: Number(map.minlap ?? bleFields.minlap.value),
+          invert: Number(map.invert ?? bleFields.invert.value),
+          alpha: Number(map.alpha ?? bleFields.alpha.value),
+          sample: Number(map.sample ?? bleFields.sample.value)
+        };
+        applyBleToForm(cfg);
+      }
+
+      function onBleLine(line) {
+        if (!line) return;
+        if (line === "LAP") {
+          flashLapBottom();
+          handleLapTrigger(performance.now());
+          return;
+        }
+        if (line.startsWith("CFG")) {
+          parseCfgLine(line);
+          return;
+        }
+      }
+
+      async function connectBle() {
+        if (!navigator.bluetooth) {
+          alert("Web Bluetooth no disponible en este navegador.");
+          return;
+        }
+        const device = await navigator.bluetooth.requestDevice({
+          filters: [{ namePrefix: "ScalexLap" }],
+          optionalServices: [NUS_SERVICE]
+        });
+        bleState.device = device;
+        device.addEventListener("gattserverdisconnected", () => {
+          setBleUi(false, "BLE desconectado");
+          bleState.server = null;
+          bleState.rxChar = null;
+          bleState.txChar = null;
+        });
+        bleState.server = await device.gatt.connect();
+        const service = await bleState.server.getPrimaryService(NUS_SERVICE);
+        bleState.rxChar = await service.getCharacteristic(NUS_RX);
+        bleState.txChar = await service.getCharacteristic(NUS_TX);
+        await bleState.txChar.startNotifications();
+        bleState.txChar.addEventListener("characteristicvaluechanged", ev => {
+          bleState.lineBuf += td.decode(ev.target.value);
+          let idx = -1;
+          while ((idx = bleState.lineBuf.indexOf("\n")) >= 0) {
+            const line = bleState.lineBuf.slice(0, idx).trim();
+            bleState.lineBuf = bleState.lineBuf.slice(idx + 1);
+            onBleLine(line);
+          }
+        });
+        setBleUi(true, "BLE conectado");
+        await bleSend("GET\n");
+      }
+
+      async function disconnectBle() {
+        try {
+          if (bleState.device && bleState.device.gatt && bleState.device.gatt.connected) {
+            bleState.device.gatt.disconnect();
+          }
+        } catch {}
+        setBleUi(false, "BLE desconectado");
+      }
+
+      async function applyBleToArduino() {
+        const cfg = readBleFields();
+        const cmd = "SET thr=" + cfg.thr + " hyst=" + cfg.hyst + " debounce=" + cfg.debounce + " holdoff=" + cfg.holdoff + " minlap=" + cfg.minlap + " invert=" + cfg.invert + " alpha=" + cfg.alpha + " sample=" + cfg.sample + "\n";
+        await bleSend(cmd);
+      }
+
+      function saveBleIntoProfile() {
+        const profile = getActiveProfile();
+        profile.bleConfig = readBleFields();
+        saveStore();
+      }
+
+      function saveDefaultsFromSettings() {
+        const profile = getActiveProfile();
+        profile.defaults = {
+          penaltySec: Math.max(0, Number(document.getElementById("defaultPenalty").value) || 0),
+          rallyName: sanitizeName(document.getElementById("defaultRallyName").value) || "Rally Session"
+        };
+        saveStore();
+        syncQuickDefaults();
+      }
+
+      const profileSelect = document.getElementById("profileSelect");
+      function renderProfiles() {
+        profileSelect.innerHTML = "";
+        store.profiles.forEach(p => {
+          const opt = document.createElement("option");
+          opt.value = p.id;
+          opt.textContent = p.name;
+          if (p.id === store.activeProfileId) opt.selected = true;
+          profileSelect.appendChild(opt);
+        });
+      }
+
+      function loadProfileToUi() {
+        const p = getActiveProfile();
+        applyBleToForm(p.bleConfig || {});
+        document.getElementById("defaultPenalty").value = String(p.defaults?.penaltySec ?? 3);
+        document.getElementById("defaultRallyName").value = String(p.defaults?.rallyName ?? "Rally Session");
+        syncQuickDefaults();
+      }
+
+      function syncQuickDefaults() {
+        const p = getActiveProfile();
+        document.getElementById("quickPenaltySec").value = String(p.defaults?.penaltySec ?? 3);
+        document.getElementById("createPenaltySec").value = String(p.defaults?.penaltySec ?? 3);
+      }
+
+      document.getElementById("createProfile").addEventListener("click", () => {
+        const name = sanitizeName(document.getElementById("newProfileName").value);
+        if (!name) return alert("Indica nombre de perfil");
+        const id = uid();
+        const source = getActiveProfile();
+        store.profiles.push({
+          id,
+          name,
+          bleConfig: { ...(source.bleConfig || {}) },
+          defaults: { ...(source.defaults || { penaltySec: 3, rallyName: "Rally Session" }) }
+        });
+        store.activeProfileId = id;
+        saveStore();
+        renderProfiles();
+        loadProfileToUi();
+        document.getElementById("newProfileName").value = "";
+      });
+
+      document.getElementById("deleteProfile").addEventListener("click", () => {
+        if (store.profiles.length <= 1) return alert("Debe existir al menos un perfil");
+        const id = store.activeProfileId;
+        store.profiles = store.profiles.filter(p => p.id !== id);
+        store.activeProfileId = store.profiles[0].id;
+        saveStore();
+        renderProfiles();
+        loadProfileToUi();
+      });
+
+      profileSelect.addEventListener("change", () => {
+        store.activeProfileId = profileSelect.value;
+        saveStore();
+        loadProfileToUi();
+      });
+
+      ["thr", "hyst", "debounce", "holdoff", "minlap", "alpha", "sample"].forEach(k => {
+        bleFields[k].addEventListener("input", paintBleFieldValues);
+      });
+      paintBleFieldValues();
+
+      document.getElementById("bleConnect").addEventListener("click", async () => {
+        ensureAudio();
+        try {
+          await connectBle();
+        } catch (e) {
+          alert("No se pudo conectar BLE: " + (e && e.message ? e.message : e));
+        }
+      });
+      document.getElementById("bleDisconnect").addEventListener("click", disconnectBle);
+      document.getElementById("bleApply").addEventListener("click", async () => {
+        try {
+          await applyBleToArduino();
+          saveBleIntoProfile();
+        } catch (e) {
+          alert("Error enviando SET: " + (e && e.message ? e.message : e));
+        }
+      });
+      document.getElementById("bleGet").addEventListener("click", async () => {
+        try {
+          await bleSend("GET\n");
+        } catch (e) {
+          alert("Error enviando GET: " + (e && e.message ? e.message : e));
+        }
+      });
+      document.getElementById("saveBleProfile").addEventListener("click", saveBleIntoProfile);
+      document.getElementById("saveDefaults").addEventListener("click", saveDefaultsFromSettings);
+
+      const pilotEls = {
+        editId: document.getElementById("pilotEditId"),
+        name: document.getElementById("pilotName"),
+        initials: document.getElementById("pilotInitials"),
+        photo: document.getElementById("pilotPhoto"),
+        list: document.getElementById("pilotList"),
+        detail: document.getElementById("pilotDetail"),
+        modal: document.getElementById("pilotModal"),
+        modalTitle: document.getElementById("pilotModalTitle")
+      };
+      let selectedPilotId = null;
+
+      function openPilotModal(id) {
+        if (id) {
+          const p = getPilot(id);
+          if (!p) return;
+          pilotEls.editId.value = p.id;
+          pilotEls.name.value = p.name;
+          pilotEls.initials.value = p.initials;
+          pilotEls.photo.value = "";
+          pilotEls.modalTitle.textContent = "Editar piloto";
+        } else {
+          resetPilotForm();
+          pilotEls.modalTitle.textContent = "Nuevo piloto";
+        }
+        pilotEls.modal.classList.add("show");
+      }
+
+      function closePilotModal() {
+        pilotEls.modal.classList.remove("show");
+        resetPilotForm();
+        renderPilots();
+      }
+
+      function getPilotStats(id) {
+        const rows = [];
+        store.rallies.forEach(r => {
+          r.turns.forEach(t => {
+            if (t.pilotId !== id) return;
+            (t.laps || []).forEach(lp => {
+              if (lp && lp.totalMs > 0) rows.push({ rallyId: r.id, trackId: r.trackId, ms: lp.totalMs });
+            });
+          });
+        });
+        if (!rows.length) return { count: 0, best: NaN };
+        return { count: rows.length, best: Math.min(...rows.map(r => r.ms)) };
+      }
+
+      function getPilotRuns(id) {
+        const rows = [];
+        store.rallies.forEach(r => {
+          const track = getTrack(r.trackId);
+          (r.turns || []).forEach(t => {
+            if (t.pilotId !== id) return;
+            const laps = t.laps || [];
+            if (!laps.length) {
+              rows.push({
+                rallyId: r.id,
+                rallyName: r.name,
+                rallyType: r.type,
+                trackName: track ? track.name : "--",
+                date: new Date(r.createdAt).toLocaleString(),
+                createdAt: r.createdAt,
+                heat: t.heatIndex || 1,
+                lapNum: "-",
+                totalMs: NaN,
+                rawMs: NaN,
+                penaltyMs: 0
+              });
+              return;
+            }
+            laps.forEach((lap, i) => {
+              rows.push({
+                rallyId: r.id,
+                rallyName: r.name,
+                rallyType: r.type,
+                trackName: track ? track.name : "--",
+                date: new Date(r.createdAt).toLocaleString(),
+                createdAt: r.createdAt,
+                heat: t.heatIndex || 1,
+                lapNum: i + 1,
+                totalMs: lap.totalMs,
+                rawMs: lap.rawMs,
+                penaltyMs: lap.penaltyMs || 0
+              });
+            });
+          });
+        });
+        return rows;
+      }
+
+      function renderPilotDetail(id) {
+        const pilot = getPilot(id);
+        if (!pilot) {
+          pilotEls.detail.innerHTML = "Selecciona un piloto para ver sus rallies, tramos y tiempos.";
+          return;
+        }
+        const runs = getPilotRuns(id);
+        const validRuns = runs.filter(r => isFinite(r.totalMs));
+        const best = validRuns.length ? Math.min(...validRuns.map(r => r.totalMs)) : NaN;
+        const rallyCount = new Set(runs.map(r => r.rallyName + "|" + r.date)).size;
+        let html = "<div class='pilot-detail'>";
+        html += "<h4>" + pilot.name + " (" + pilot.initials + ")</h4>";
+        html += "<div class='meta'>Rallies: " + rallyCount + " | Vueltas: " + validRuns.length + " | Mejor: " + (isFinite(best) ? fmt(best) : "--:--.---") + "</div>";
+        html += "</div>";
+
+        const grouped = new Map();
+        runs.forEach(r => {
+          const key = (r.rallyId || r.rallyName) + "|" + r.date;
+          if (!grouped.has(key)) grouped.set(key, {
+            rallyName: r.rallyName,
+            rallyType: r.rallyType,
+            trackName: r.trackName,
+            date: r.date,
+            createdAt: r.createdAt,
+            rows: []
+          });
+          grouped.get(key).rows.push(r);
+        });
+
+        if (!grouped.size) {
+          html += "<table><tbody><tr><td>Sin registros todavia</td></tr></tbody></table>";
+        } else {
+          const groupedList = [...grouped.values()]
+            .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+          groupedList.forEach((g, idx) => {
+            html += "<details class='group-block' " + (idx === 0 ? "open" : "") + ">";
+            html += "<summary class='group-summary'><span>" + g.rallyName + " | " + g.date + "</span><span class='group-meta'>Track: " + g.trackName + " | " + g.rallyType + "</span></summary>";
+            html += "<div class='group-body'><table><thead><tr><th class='right'>Tanda</th><th class='right'>Vuelta</th><th class='right'>Raw</th><th class='right'>Pen</th><th class='right'>Total</th></tr></thead><tbody>";
+            g.rows.forEach(r => {
+              html += "<tr><td class='right'>" + r.heat + "</td><td class='right'>" + r.lapNum + "</td><td class='right'>" + (isFinite(r.rawMs) ? fmt(r.rawMs) : "-") + "</td><td class='right'>" + (r.penaltyMs ? ("+" + fmt(r.penaltyMs)) : "-") + "</td><td class='right'>" + (isFinite(r.totalMs) ? fmt(r.totalMs) : "Sin vueltas") + "</td></tr>";
+            });
+            html += "</tbody></table></div></details>";
+          });
+        }
+        pilotEls.detail.innerHTML = html;
+      }
+
+      function resetPilotForm() {
+        pilotEls.editId.value = "";
+        pilotEls.name.value = "";
+        pilotEls.initials.value = "";
+        pilotEls.photo.value = "";
+      }
+
+      async function savePilot() {
+        const name = sanitizeName(pilotEls.name.value);
+        const initials = toInitials(pilotEls.initials.value);
+        if (!name) return alert("Nombre obligatorio");
+        if (!initials || initials.length !== 3) return alert("Iniciales de 3 caracteres");
+        const editId = pilotEls.editId.value;
+        const file = pilotEls.photo.files && pilotEls.photo.files[0];
+        const newPhoto = file ? await fileToDataUrl(file) : "";
+        let savedId = editId;
+        if (editId) {
+          const p = getPilot(editId);
+          if (!p) return;
+          p.name = name;
+          p.initials = initials;
+          if (newPhoto) p.photo = newPhoto;
+        } else {
+          savedId = uid();
+          store.pilots.push({ id: savedId, name, initials, photo: newPhoto, createdAt: nowIso() });
+        }
+        if (!saveStore()) return;
+        resetPilotForm();
+        renderPilots();
+        refreshPilotSelectors();
+        if (savedId) {
+          selectedPilotId = savedId;
+          quickPilot.value = savedId;
+          createPilotSelect.value = savedId;
+          updateSelectionInfo();
+        }
+        closePilotModal();
+      }
+
+      function editPilot(id) {
+        selectedPilotId = id;
+        go("pilots");
+        openPilotModal(id);
+      }
+
+      function deletePilot(id) {
+        const used = store.rallies.some(r => r.turns.some(t => t.pilotId === id));
+        if (used && !confirm("Este piloto aparece en historial. Borrar igualmente?")) return;
+        store.pilots = store.pilots.filter(p => p.id !== id);
+        saveStore();
+        if (selectedPilotId === id) selectedPilotId = null;
+        renderPilots();
+        refreshPilotSelectors();
+      }
+
+      function renderPilots() {
+        pilotEls.list.innerHTML = "";
+        if (!store.pilots.length) {
+          pilotEls.list.innerHTML = '<div class="hint">No hay pilotos aun.</div>';
+          pilotEls.detail.innerHTML = "Selecciona un piloto para ver sus rallies, tramos y tiempos.";
+          return;
+        }
+        if (!selectedPilotId || !store.pilots.some(p => p.id === selectedPilotId)) selectedPilotId = store.pilots[0].id;
+        store.pilots.forEach(p => {
+          const stats = getPilotStats(p.id);
+          const row = document.createElement("div");
+          row.className = "item" + (p.id === selectedPilotId ? " selected" : "");
+          row.innerHTML = '<div class="left-wrap">' + renderAvatar(p.photo, p.initials) + '<div class="meta"><b>' + p.name + ' (' + p.initials + ')</b><small>' + (stats.count ? ('Mejor: ' + fmt(stats.best) + ' | Vueltas: ' + stats.count) : 'Sin vueltas registradas') + '</small></div></div>' +
+            '<div class="actions"><button class="mini-btn" data-act="edit">Editar</button><button class="mini-btn danger" data-act="del">Borrar</button></div>';
+          row.addEventListener("click", () => {
+            selectedPilotId = p.id;
+            renderPilots();
+          });
+          row.querySelector('[data-act="edit"]').addEventListener("click", (ev) => { ev.stopPropagation(); editPilot(p.id); });
+          row.querySelector('[data-act="del"]').addEventListener("click", (ev) => { ev.stopPropagation(); deletePilot(p.id); });
+          pilotEls.list.appendChild(row);
+        });
+        renderPilotDetail(selectedPilotId);
+      }
+
+      document.getElementById("savePilot").addEventListener("click", savePilot);
+      document.getElementById("resetPilotForm").addEventListener("click", resetPilotForm);
+      document.getElementById("cancelPilotEdit").addEventListener("click", closePilotModal);
+      document.getElementById("openPilotCreate").addEventListener("click", () => openPilotModal());
+      pilotEls.modal.addEventListener("click", (ev) => {
+        if (ev.target === pilotEls.modal) closePilotModal();
+      });
+
+      const trackEls = {
+        editId: document.getElementById("trackEditId"),
+        name: document.getElementById("trackName"),
+        distance: document.getElementById("trackDistance"),
+        photo: document.getElementById("trackPhoto"),
+        list: document.getElementById("trackList"),
+        detail: document.getElementById("trackDetail"),
+        modal: document.getElementById("trackModal"),
+        modalTitle: document.getElementById("trackModalTitle")
+      };
+      let selectedTrackId = null;
+
+      function openTrackModal(id) {
+        if (id) {
+          const t = getTrack(id);
+          if (!t) return;
+          trackEls.editId.value = t.id;
+          trackEls.name.value = t.name;
+          trackEls.distance.value = t.distanceM ? String(t.distanceM) : "";
+          trackEls.photo.value = "";
+          trackEls.modalTitle.textContent = "Editar track";
+        } else {
+          resetTrackForm();
+          trackEls.modalTitle.textContent = "Nuevo track";
+        }
+        trackEls.modal.classList.add("show");
+      }
+
+      function closeTrackModal() {
+        trackEls.modal.classList.remove("show");
+        resetTrackForm();
+        renderTracks();
+      }
+
+      function getTrackRuns(id) {
+        const rows = [];
+        store.rallies.forEach(r => {
+          if (r.trackId !== id) return;
+          (r.turns || []).forEach(t => {
+            const pilot = getPilot(t.pilotId);
+            const laps = t.laps || [];
+            if (!laps.length) {
+              rows.push({ rallyId: r.id, rally: r.name, rallyType: r.type, date: new Date(r.createdAt).toLocaleString(), createdAt: r.createdAt, pilot: pilot ? pilot.name : "--", heat: t.heatIndex || 1, lap: "-", rawMs: NaN, penMs: 0, totalMs: NaN });
+              return;
+            }
+            laps.forEach((lap, i) => rows.push({
+              rallyId: r.id,
+              rally: r.name,
+              rallyType: r.type,
+              date: new Date(r.createdAt).toLocaleString(),
+              createdAt: r.createdAt,
+              pilot: pilot ? pilot.name : "--",
+              heat: t.heatIndex || 1,
+              lap: i + 1,
+              rawMs: lap.rawMs,
+              penMs: lap.penaltyMs || 0,
+              totalMs: lap.totalMs
+            }));
+          });
+        });
+        return rows;
+      }
+
+      function renderTrackDetail(id) {
+        const t = getTrack(id);
+        if (!t) {
+          trackEls.detail.innerHTML = "Selecciona un track para ver rallies y tiempos por piloto.";
+          return;
+        }
+        const runs = getTrackRuns(id);
+        const valid = runs.filter(r => isFinite(r.totalMs));
+        const best = valid.length ? Math.min(...valid.map(r => r.totalMs)) : NaN;
+        let html = "<div class='pilot-detail'><h4>" + t.name + "</h4><div class='meta'>Distancia: " + (t.distanceM ? (t.distanceM + " m") : "--") + " | Vueltas: " + valid.length + " | Mejor: " + (isFinite(best) ? fmt(best) : "--:--.---") + "</div></div>";
+
+        const grouped = new Map();
+        runs.forEach(r => {
+          const key = (r.rallyId || r.rally) + "|" + r.date;
+          if (!grouped.has(key)) grouped.set(key, {
+            rally: r.rally,
+            rallyType: r.rallyType,
+            date: r.date,
+            createdAt: r.createdAt,
+            rows: []
+          });
+          grouped.get(key).rows.push(r);
+        });
+
+        if (!grouped.size) {
+          html += "<table><tbody><tr><td>Sin registros todavia</td></tr></tbody></table>";
+        } else {
+          const groupedList = [...grouped.values()]
+            .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+          groupedList.forEach((g, idx) => {
+            html += "<details class='group-block' " + (idx === 0 ? "open" : "") + ">";
+            html += "<summary class='group-summary'><span>" + g.rally + " | " + g.date + "</span><span class='group-meta'>Tipo: " + g.rallyType + "</span></summary>";
+            html += "<div class='group-body'><table><thead><tr><th>Piloto</th><th class='right'>Tanda</th><th class='right'>Vuelta</th><th class='right'>Raw</th><th class='right'>Pen</th><th class='right'>Total</th></tr></thead><tbody>";
+            g.rows.forEach(r => {
+              html += "<tr><td>" + r.pilot + "</td><td class='right'>" + r.heat + "</td><td class='right'>" + r.lap + "</td><td class='right'>" + (isFinite(r.rawMs) ? fmt(r.rawMs) : "-") + "</td><td class='right'>" + (r.penMs ? ("+" + fmt(r.penMs)) : "-") + "</td><td class='right'>" + (isFinite(r.totalMs) ? fmt(r.totalMs) : "Sin vueltas") + "</td></tr>";
+            });
+            html += "</tbody></table></div></details>";
+          });
+        }
+        trackEls.detail.innerHTML = html;
+      }
+
+      function getTrackStats(id) {
+        const laps = [];
+        store.rallies.forEach(r => {
+          if (r.trackId !== id) return;
+          r.turns.forEach(t => (t.laps || []).forEach(lp => { if (lp.totalMs > 0) laps.push({ pilotId: t.pilotId, ms: lp.totalMs }); }));
+        });
+        if (!laps.length) return { count: 0, best: NaN, bestPilotId: null };
+        let best = laps[0];
+        laps.forEach(l => { if (l.ms < best.ms) best = l; });
+        return { count: laps.length, best: best.ms, bestPilotId: best.pilotId };
+      }
+
+      function resetTrackForm() {
+        trackEls.editId.value = "";
+        trackEls.name.value = "";
+        trackEls.distance.value = "";
+        trackEls.photo.value = "";
+      }
+
+      async function saveTrack() {
+        const name = sanitizeName(trackEls.name.value);
+        if (!name) return alert("Nombre obligatorio");
+        const distRaw = String(trackEls.distance.value || "").trim();
+        const distance = distRaw ? Number(distRaw) : NaN;
+        const editId = trackEls.editId.value;
+        const file = trackEls.photo.files && trackEls.photo.files[0];
+        const newPhoto = file ? await fileToDataUrl(file) : "";
+        let savedId = editId;
+        if (editId) {
+          const t = getTrack(editId);
+          if (!t) return;
+          t.name = name;
+          t.distanceM = isFinite(distance) ? distance : null;
+          if (newPhoto) t.photo = newPhoto;
+        } else {
+          savedId = uid();
+          store.tracks.push({ id: savedId, name, distanceM: isFinite(distance) ? distance : null, photo: newPhoto, createdAt: nowIso() });
+        }
+        if (!saveStore()) return;
+        resetTrackForm();
+        renderTracks();
+        refreshTrackSelectors();
+        if (savedId) {
+          selectedTrackId = savedId;
+          quickTrack.value = savedId;
+          createTrack.value = savedId;
+          updateSelectionInfo();
+        }
+        closeTrackModal();
+      }
+
+      function editTrack(id) {
+        selectedTrackId = id;
+        go("tracks");
+        openTrackModal(id);
+      }
+
+      function deleteTrack(id) {
+        const used = store.rallies.some(r => r.trackId === id);
+        if (used && !confirm("Este track aparece en historial. Borrar igualmente?")) return;
+        store.tracks = store.tracks.filter(t => t.id !== id);
+        saveStore();
+        if (selectedTrackId === id) selectedTrackId = null;
+        renderTracks();
+        refreshTrackSelectors();
+      }
+
+      function renderTracks() {
+        trackEls.list.innerHTML = "";
+        if (!store.tracks.length) {
+          trackEls.list.innerHTML = '<div class="hint">No hay tracks aun.</div>';
+          trackEls.detail.innerHTML = "Selecciona un track para ver rallies y tiempos por piloto.";
+          return;
+        }
+        if (!selectedTrackId || !store.tracks.some(t => t.id === selectedTrackId)) selectedTrackId = store.tracks[0].id;
+        store.tracks.forEach(t => {
+          const stats = getTrackStats(t.id);
+          const bestPilot = stats.bestPilotId ? getPilot(stats.bestPilotId) : null;
+          const row = document.createElement("div");
+          row.className = "item" + (t.id === selectedTrackId ? " selected" : "");
+          row.innerHTML = '<div class="left-wrap">' + renderAvatar(t.photo, "TRK") + '<div class="meta"><b>' + t.name + '</b><small>' + (t.distanceM ? (t.distanceM + ' m | ') : '') + (stats.count ? ('Best: ' + fmt(stats.best) + (bestPilot ? (' (' + bestPilot.name + ')') : '') + ' | Vueltas: ' + stats.count) : 'Sin vueltas registradas') + '</small></div></div>' +
+            '<div class="actions"><button class="mini-btn" data-act="edit">Editar</button><button class="mini-btn danger" data-act="del">Borrar</button></div>';
+          row.addEventListener("click", () => {
+            selectedTrackId = t.id;
+            renderTracks();
+          });
+          row.querySelector('[data-act="edit"]').addEventListener("click", (ev) => { ev.stopPropagation(); editTrack(t.id); });
+          row.querySelector('[data-act="del"]').addEventListener("click", (ev) => { ev.stopPropagation(); deleteTrack(t.id); });
+          trackEls.list.appendChild(row);
+        });
+        renderTrackDetail(selectedTrackId);
+      }
+
+      document.getElementById("saveTrack").addEventListener("click", saveTrack);
+      document.getElementById("resetTrackForm").addEventListener("click", resetTrackForm);
+      document.getElementById("cancelTrackEdit").addEventListener("click", closeTrackModal);
+      document.getElementById("openTrackCreate").addEventListener("click", () => openTrackModal());
+      trackEls.modal.addEventListener("click", (ev) => {
+        if (ev.target === trackEls.modal) closeTrackModal();
+      });
+
+      const quickPilot = document.getElementById("quickPilot");
+      const quickTrack = document.getElementById("quickTrack");
+      const createTrack = document.getElementById("createTrack");
+      const createPilotSelect = document.getElementById("createPilotSelect");
+      const orderList = document.getElementById("pilotOrderList");
+      const orderState = [];
+
+      function fillSelect(select, rows, placeholder) {
+        select.innerHTML = "";
+        if (!rows.length) {
+          const op = document.createElement("option");
+          op.value = "";
+          op.textContent = placeholder;
+          select.appendChild(op);
+          return;
+        }
+        rows.forEach(r => {
+          const op = document.createElement("option");
+          op.value = r.id;
+          op.textContent = r.label;
+          select.appendChild(op);
+        });
+      }
+
+      function refreshPilotSelectors() {
+        fillSelect(quickPilot, store.pilots.map(p => ({ id: p.id, label: p.name + " (" + p.initials + ")" })), "Sin pilotos");
+        fillSelect(createPilotSelect, store.pilots.map(p => ({ id: p.id, label: p.name + " (" + p.initials + ")" })), "Sin pilotos");
+        updateSelectionInfo();
+      }
+
+      function refreshTrackSelectors() {
+        fillSelect(quickTrack, store.tracks.map(t => ({ id: t.id, label: t.name })), "Sin tracks");
+        fillSelect(createTrack, store.tracks.map(t => ({ id: t.id, label: t.name })), "Sin tracks");
+        updateSelectionInfo();
+      }
+
+      function renderOrderList() {
+        orderList.innerHTML = "";
+        if (!orderState.length) {
+          orderList.innerHTML = '<div class="hint">No hay pilotos en la salida.</div>';
+          return;
+        }
+        orderState.forEach((id, idx) => {
+          const p = getPilot(id);
+          if (!p) return;
+          const item = document.createElement("div");
+          item.className = "item";
+          item.innerHTML = '<div class="left-wrap">' + renderAvatar(p.photo, p.initials) + '<div class="meta"><b>' + (idx + 1) + '. ' + p.name + '</b><small>' + p.initials + '</small></div></div>' +
+            '<div class="actions"><button class="mini-btn" data-act="up">Subir</button><button class="mini-btn" data-act="down">Bajar</button><button class="mini-btn danger" data-act="del">Quitar</button></div>';
+          item.querySelector('[data-act="up"]').addEventListener("click", () => {
+            if (idx <= 0) return;
+            [orderState[idx - 1], orderState[idx]] = [orderState[idx], orderState[idx - 1]];
+            renderOrderList();
+          });
+          item.querySelector('[data-act="down"]').addEventListener("click", () => {
+            if (idx >= orderState.length - 1) return;
+            [orderState[idx + 1], orderState[idx]] = [orderState[idx], orderState[idx + 1]];
+            renderOrderList();
+          });
+          item.querySelector('[data-act="del"]').addEventListener("click", () => {
+            orderState.splice(idx, 1);
+            renderOrderList();
+          });
+          orderList.appendChild(item);
+        });
+      }
+
+      document.getElementById("addPilotOrder").addEventListener("click", () => {
+        const id = createPilotSelect.value;
+        if (!id) return;
+        if (orderState.includes(id)) return alert("Ese piloto ya esta en el orden");
+        orderState.push(id);
+        renderOrderList();
+      });
+      document.getElementById("clearPilotOrder").addEventListener("click", () => {
+        orderState.length = 0;
+        renderOrderList();
+      });
+
+      document.getElementById("quickNewPilot").addEventListener("click", () => { go("pilots"); openPilotModal(); });
+      document.getElementById("quickNewTrack").addEventListener("click", () => { go("tracks"); openTrackModal(); });
+      document.getElementById("quickRefreshPilot").addEventListener("click", refreshPilotSelectors);
+      document.getElementById("quickRefreshTrack").addEventListener("click", refreshTrackSelectors);
+      quickPilot.addEventListener("change", updateSelectionInfo);
+      quickTrack.addEventListener("change", updateSelectionInfo);
+      createTrack.addEventListener("change", updateSelectionInfo);
+      document.getElementById("quickToSettings").addEventListener("click", () => go("settings"));
+      document.getElementById("createNewPilot").addEventListener("click", () => { go("pilots"); openPilotModal(); });
+      document.getElementById("createNewTrack").addEventListener("click", () => { go("tracks"); openTrackModal(); });
+      document.getElementById("createRefreshTrack").addEventListener("click", refreshTrackSelectors);
+
+      const session = {
+        active: false,
+        type: "",
+        name: "",
+        trackId: "",
+        penaltySec: 0,
+        queue: [],
+        idx: 0,
+        turn: null,
+        status: "idle",
+        semaTimer: null
+      };
+
+      function setLight(key, on) {
+        (semaLights[key] || []).forEach(el => el.classList.toggle("on", on));
+      }
+
+      function resetSemaphoreLights() {
+        setLight("L1", false);
+        setLight("L2", false);
+        setLight("L3", false);
+        setLight("L4", false);
+      }
+
+      function createTurn(pilotId, targetLaps, heatIndex) {
+        return {
+          pilotId,
+          heatIndex,
+          targetLaps,
+          laps: [],
+          startedAt: null,
+          lapStartAt: null,
+          bestLapMs: NaN,
+          lastLapMs: NaN,
+          falseStarts: 0,
+          pendingPenaltyMs: 0,
+          points: 0,
+          completed: false
+        };
+      }
+
+      function startSession(config) {
+        session.active = true;
+        session.type = config.type;
+        session.name = config.name;
+        session.trackId = config.trackId;
+        session.penaltySec = config.penaltySec;
+        session.queue = config.queue.slice();
+        session.idx = 0;
+        session.turn = null;
+        session.status = "idle";
+        raceScreen.classList.add("show");
+        go("home");
+        moveToNextTurn();
+      }
+
+      function closeSessionScreen() {
+        raceScreen.classList.remove("show");
+        semaphoreScreen.classList.remove("show");
+      }
+
+      function updateRaceHeader() {
+        const track = getTrack(session.trackId);
+        const pilot = session.turn ? getPilot(session.turn.pilotId) : null;
+        raceUI.pilotBadge.textContent = "Piloto: " + (pilot ? pilot.name : "--");
+        raceUI.trackBadge.textContent = "Track: " + (track ? track.name : "--");
+        raceUI.modeBadge.textContent = "Modo: " + (session.type === "quick" ? "Quick Rally" : "Rally");
+      }
+
+      function refreshRaceUi() {
+        if (!session.turn) return;
+        const t = session.turn;
+        const lapNum = t.laps.length;
+        const prevLapCount = Number(raceUI.lapTable.dataset.lastCount || 0);
+        const target = t.targetLaps ? ("/" + t.targetLaps) : "";
+        raceUI.lapBadge.textContent = "Vuelta: " + lapNum + target;
+        raceUI.lastLap.textContent = isFinite(t.lastLapMs) ? fmt(t.lastLapMs) : "--:--.---";
+        raceUI.bestLap.textContent = isFinite(t.bestLapMs) ? fmt(t.bestLapMs) : "--:--.---";
+        raceUI.lapTable.innerHTML = "";
+        t.laps.forEach((lap, i) => {
+          const tr = document.createElement("tr");
+          const sign = lap.deltaMs > 0 ? "+" : "";
+          const state = lap.penaltyMs > 0 ? ("PEN +" + fmt(lap.penaltyMs)) : "OK";
+          tr.innerHTML = "<td>" + (i + 1) + "</td><td class='right'>" + fmt(lap.totalMs) + "</td><td class='right'>" + (isFinite(lap.deltaMs) ? (sign + fmt(Math.abs(lap.deltaMs))) : "--") + "</td><td>" + state + "</td>";
+          if (lap.penaltyMs > 0) tr.className = "lap-neutral";
+          else if (isFinite(lap.deltaMs) && lap.deltaMs < 0) tr.className = "lap-good";
+          else if (isFinite(lap.deltaMs) && lap.deltaMs > 0) tr.className = "lap-bad";
+          if (lapNum > prevLapCount && i === lapNum - 1) tr.className = (tr.className ? tr.className + " " : "") + "lap-new";
+          raceUI.lapTable.appendChild(tr);
+        });
+        raceUI.lapTable.dataset.lastCount = String(lapNum);
+
+        if (t.laps.length >= 2) {
+          const prev = t.laps[t.laps.length - 2].totalMs;
+          const curr = t.laps[t.laps.length - 1].totalMs;
+          const d = curr - prev;
+          if (d < 0) {
+            raceUI.progress.textContent = "Progresion: mejora " + fmt(Math.abs(d)) + " | flecha: ↑";
+            raceUI.progress.className = "progress up";
+          } else if (d > 0) {
+            raceUI.progress.textContent = "Progresion: empeora " + fmt(Math.abs(d)) + " | flecha: ↓";
+            raceUI.progress.className = "progress down";
+          } else {
+            raceUI.progress.textContent = "Progresion: estable";
+            raceUI.progress.className = "progress neutral";
+          }
+        } else {
+          raceUI.progress.textContent = "Progresion: --";
+          raceUI.progress.className = "progress";
+        }
+      }
+
+      function runTimerLoop() {
+        const running = session.active && session.turn && session.status === "running" && session.turn.lapStartAt;
+        raceUI.bigTime.classList.toggle("running", Boolean(running));
+        if (running) {
+          raceUI.bigTime.textContent = fmt(performance.now() - session.turn.lapStartAt);
+        } else if (raceScreen.classList.contains("show")) {
+          raceUI.bigTime.textContent = "00:00.000";
+        }
+        requestAnimationFrame(runTimerLoop);
+      }
+
+      function startSemaphore() {
+        session.status = "countdown";
+        raceUI.touchBox.classList.add("hide");
+        showOnlyNextPilot(false);
+        semaphoreScreen.classList.add("show");
+        raceUI.mini.textContent = "Semaforo en cuenta atras...";
+        resetSemaphoreLights();
+        semaMsg.textContent = "Preparado";
+
+        setTimeout(() => { setLight("L1", true); semaMsg.textContent = "3"; soundCount(); }, 250);
+        setTimeout(() => { setLight("L2", true); semaMsg.textContent = "2"; soundCount(); }, 1200);
+        setTimeout(() => { setLight("L3", true); semaMsg.textContent = "1"; soundCount(); }, 2200);
+        setTimeout(() => {
+          setLight("L1", false);
+          setLight("L2", false);
+          setLight("L3", false);
+          setLight("L4", true);
+          semaMsg.textContent = "GO";
+          soundHorn();
+          session.status = "waiting_start_pass";
+          raceUI.mini.textContent = "Pasa por meta para iniciar cronometro";
+          setTimeout(() => {
+            semaphoreScreen.classList.remove("show");
+            setLight("L4", false);
+          }, 700);
+        }, 3200);
+      }
+
+      function currentPilotLabel() {
+        const p = session.turn ? getPilot(session.turn.pilotId) : null;
+        return p ? p.name : "--";
+      }
+
+      function renderNextPilotScreen() {
+        const p = session.turn ? getPilot(session.turn.pilotId) : null;
+        const photo = p && p.photo
+          ? "<img class='next-photo' src='" + p.photo + "' alt='Piloto'>"
+          : "<div class='next-photo ph'>" + (p ? p.initials : "---") + "</div>";
+        raceUI.touchBox.innerHTML = "<div class='next-wrap'><div class='next-label'>Next Pilot</div>" + photo + "<div class='next-name'>" + (p ? p.name : "--") + "</div><div class='next-tap'>Toca para iniciar semaforo</div></div>";
+      }
+
+      function moveToNextTurn() {
+        if (session.idx >= session.queue.length) {
+          finishSession();
+          return;
+        }
+        const q = session.queue[session.idx];
+        session.turn = createTurn(q.pilotId, q.targetLaps, q.heatIndex);
+        updateRaceHeader();
+        refreshRaceUi();
+        showOnlyNextPilot(true);
+        raceUI.touchBox.classList.remove("hide");
+        renderNextPilotScreen();
+        raceUI.mini.textContent = "Esperando toque para semaforo";
+        session.status = "await_touch";
+      }
+
+      raceUI.touchBox.addEventListener("click", () => {
+        if (!session.active || session.status !== "await_touch") return;
+        ensureAudio();
+        startSemaphore();
+      });
+
+      function applyLapPoints(turn, lapMs, delta) {
+        const base = Math.max(1, Math.round(10000 / Math.max(1, lapMs)));
+        const improveBonus = delta < 0 ? Math.round(Math.abs(delta) / 120) : 0;
+        turn.points += base + improveBonus;
+      }
+
+      function addLapForTurn(rawMs, penaltyMs) {
+        const t = session.turn;
+        const totalMs = rawMs + penaltyMs;
+        const prev = t.laps.length ? t.laps[t.laps.length - 1].totalMs : NaN;
+        const delta = isFinite(prev) ? (totalMs - prev) : NaN;
+        t.laps.push({ rawMs, penaltyMs, totalMs, deltaMs: delta });
+        t.lastLapMs = totalMs;
+        if (!isFinite(t.bestLapMs) || totalMs < t.bestLapMs) t.bestLapMs = totalMs;
+        applyLapPoints(t, totalMs, delta);
+      }
+
+      function handleLapTrigger(ts) {
+        if (!session.active || !session.turn) return;
+        if (session.status === "countdown") {
+          session.turn.falseStarts += 1;
+          session.turn.pendingPenaltyMs += session.penaltySec * 1000;
+          raceUI.mini.textContent = "Salida falsa detectada: +" + session.penaltySec + "s";
+          soundPenalty();
+          return;
+        }
+        if (session.status === "waiting_start_pass") {
+          showOnlyNextPilot(false);
+          session.turn.startedAt = ts;
+          session.turn.lapStartAt = ts;
+          session.status = "running";
+          raceUI.mini.textContent = "Cronometro activo";
+          flashLapBottom();
+          return;
+        }
+        if (session.status !== "running") return;
+
+        const lapRaw = ts - session.turn.lapStartAt;
+        session.turn.lapStartAt = ts;
+        const penalty = session.turn.pendingPenaltyMs;
+        session.turn.pendingPenaltyMs = 0;
+
+        addLapForTurn(lapRaw, penalty);
+        soundLap();
+
+        if (session.turn.targetLaps && session.turn.laps.length === session.turn.targetLaps - 1) {
+          raceUI.mini.textContent = "LAST LAP";
+          soundLastLap();
+        } else {
+          raceUI.mini.textContent = "Paso en meta";
+        }
+
+        refreshRaceUi();
+
+        if (session.turn.targetLaps && session.turn.laps.length >= session.turn.targetLaps) {
+          finishCurrentTurn();
+        }
+      }
+
+      function finishCurrentTurn(manual) {
+        if (!session.turn || session.turn.completed) return;
+        storeTurnInQueue();
+        session.turn.completed = true;
+        if (manual) {
+          raceUI.mini.textContent = "Ronda finalizada manualmente";
+        } else {
+          raceUI.mini.textContent = "Tanda completada";
+        }
+        soundFinish();
+        session.idx += 1;
+        setTimeout(moveToNextTurn, 900);
+      }
+
+      function summarizeTurns(turns) {
+        const byPilot = {};
+        turns.forEach(t => {
+          if (!byPilot[t.pilotId]) byPilot[t.pilotId] = { pilotId: t.pilotId, laps: [], falseStarts: 0, points: 0 };
+          byPilot[t.pilotId].falseStarts += t.falseStarts || 0;
+          byPilot[t.pilotId].points += t.points || 0;
+          (t.laps || []).forEach(lp => byPilot[t.pilotId].laps.push(lp.totalMs));
+        });
+
+        Object.values(byPilot).forEach(p => {
+          p.bestLap = p.laps.length ? Math.min(...p.laps) : NaN;
+          p.avgLap = p.laps.length ? mean(p.laps) : NaN;
+          p.std = p.laps.length ? stddev(p.laps) : 0;
+          const consistencyBonus = p.laps.length ? Math.max(0, Math.round(80 - (p.std / p.avgLap) * 100)) : 0;
+          p.points += consistencyBonus;
+          p.points -= (p.falseStarts || 0) * 5;
+        });
+
+        const bestRanking = Object.values(byPilot)
+          .filter(p => isFinite(p.bestLap))
+          .sort((a, b) => a.bestLap - b.bestLap)
+          .map((p, idx) => ({ pos: idx + 1, pilotId: p.pilotId, value: p.bestLap }));
+
+        const pointsRanking = Object.values(byPilot)
+          .sort((a, b) => b.points - a.points)
+          .map((p, idx) => ({ pos: idx + 1, pilotId: p.pilotId, value: p.points }));
+
+        return { byPilot, bestRanking, pointsRanking };
+      }
+
+      function buildShareText(rally) {
+        const lines = [];
+        const track = getTrack(rally.trackId);
+        lines.push("Scalex Rally - " + rally.name);
+        lines.push("Track: " + (track ? track.name : "--"));
+        lines.push("Tipo: " + rally.type);
+        lines.push("Fecha: " + rally.createdAt);
+        lines.push("");
+        lines.push("Ranking mejor vuelta:");
+        rally.summary.bestRanking.forEach(r => {
+          const p = getPilot(r.pilotId);
+          lines.push(r.pos + ". " + (p ? p.name : "Piloto") + " - " + fmt(r.value));
+        });
+        lines.push("");
+        lines.push("Ranking puntos:");
+        rally.summary.pointsRanking.forEach(r => {
+          const p = getPilot(r.pilotId);
+          lines.push(r.pos + ". " + (p ? p.name : "Piloto") + " - " + r.value + " pts");
+        });
+        return lines.join("\n");
+      }
+
+      async function shareText(title, text) {
+        if (navigator.share) {
+          try {
+            await navigator.share({ title, text });
+            return;
+          } catch {}
+        }
+        try {
+          await navigator.clipboard.writeText(text);
+          alert("Texto copiado al portapapeles");
+        } catch {
+          alert(text);
+        }
+      }
+
+      function finishSession() {
+        const turns = session.queue.map((q, i) => {
+          const t = q.result || null;
+          return t || null;
+        }).filter(Boolean);
+
+        const completedTurns = turns.length ? turns : session.queue.map(q => q.result).filter(Boolean);
+        const summary = summarizeTurns(completedTurns);
+        const rally = {
+          id: uid(),
+          type: session.type,
+          name: session.name,
+          trackId: session.trackId,
+          penaltySec: session.penaltySec,
+          createdAt: nowIso(),
+          turns: completedTurns,
+          summary
+        };
+        store.rallies.unshift(rally);
+        saveStore();
+        selectedHistoryId = rally.id;
+        renderHistory();
+        renderHistoryDetail(rally);
+        closeSessionScreen();
+        session.active = false;
+        session.status = "idle";
+        go("history");
+      }
+
+      document.getElementById("finishRoundBtn").addEventListener("click", () => {
+        if (!session.active) return;
+        if (session.turn) {
+          const cur = session.queue[session.idx];
+          if (cur) cur.result = session.turn;
+        }
+        finishSession();
+      });
+
+      function storeTurnInQueue() {
+        const cur = session.queue[session.idx];
+        if (cur && session.turn) {
+          cur.result = JSON.parse(JSON.stringify(session.turn));
+        }
+      }
+
+      document.getElementById("startQuick").addEventListener("click", () => {
+        const pilotId = quickPilot.value;
+        const trackId = quickTrack.value;
+        const penaltySec = Math.max(0, Number(document.getElementById("quickPenaltySec").value) || 0);
+        if (!pilotId) return alert("Selecciona o crea un piloto");
+        if (!trackId) return alert("Selecciona o crea un track");
+        const profile = getActiveProfile();
+        startSession({
+          type: "quick",
+          name: "Quick Rally - " + (profile.defaults?.rallyName || "Session"),
+          trackId,
+          penaltySec,
+          queue: [{ pilotId, targetLaps: null, heatIndex: 1 }]
+        });
+      });
+
+      document.getElementById("startCreatedRally").addEventListener("click", () => {
+        const name = sanitizeName(document.getElementById("rallyName").value) || (getActiveProfile().defaults?.rallyName || "Rally Session");
+        const trackId = createTrack.value;
+        const lapsPerHeat = Math.max(1, Number(document.getElementById("lapsPerHeat").value) || 1);
+        const heatCount = Math.max(1, Number(document.getElementById("heatCount").value) || 1);
+        const penaltySec = Math.max(0, Number(document.getElementById("createPenaltySec").value) || 0);
+        if (!trackId) return alert("Selecciona track");
+        if (!orderState.length) return alert("Agrega pilotos al orden");
+
+        const queue = [];
+        for (let h = 1; h <= heatCount; h++) {
+          orderState.forEach(pid => queue.push({ pilotId: pid, targetLaps: lapsPerHeat, heatIndex: h }));
+        }
+
+        startSession({ type: "planned", name, trackId, penaltySec, queue });
+      });
+
+      const historyList = document.getElementById("historyList");
+      const historyDetail = document.getElementById("historyDetail");
+      let selectedHistoryId = null;
+
+      function rallyCardText(r) {
+        const track = getTrack(r.trackId);
+        const top = r.summary.bestRanking[0];
+        const bestPilot = top ? getPilot(top.pilotId) : null;
+        return {
+          title: r.name + " - " + (r.type === "quick" ? "Quick" : "Rally"),
+          sub: (track ? track.name : "Track --") + " | " + new Date(r.createdAt).toLocaleString(),
+          chips: [
+            "Turnos: " + r.turns.length,
+            "Best global: " + (top ? fmt(top.value) : "--"),
+            "Piloto best: " + (bestPilot ? bestPilot.name : "--")
+          ]
+        };
+      }
+
+      function renderHistoryDetail(r) {
+        const track = getTrack(r.trackId);
+        historySelectedHint.textContent = "Rally seleccionado: " + r.name;
+        const bestRanking = Array.isArray(r.summary?.bestRanking) ? r.summary.bestRanking : [];
+        const pointsRanking = Array.isArray(r.summary?.pointsRanking) ? r.summary.pointsRanking : [];
+        const byPilot = r.summary?.byPilot ? Object.values(r.summary.byPilot) : [];
+        const pilotCards = byPilot
+          .sort((a, b) => {
+            const aa = isFinite(a.bestLap) ? a.bestLap : Number.POSITIVE_INFINITY;
+            const bb = isFinite(b.bestLap) ? b.bestLap : Number.POSITIVE_INFINITY;
+            return aa - bb;
+          })
+          .map(p => {
+            const pilot = getPilot(p.pilotId);
+            const best = isFinite(p.bestLap) ? fmt(p.bestLap) : "--:--.---";
+            const avg = isFinite(p.avgLap) ? fmt(p.avgLap) : "--:--.---";
+            const avatar = pilot && pilot.photo
+              ? "<img class='result-avatar' src='" + pilot.photo + "' alt='Piloto'>"
+              : "<div class='result-avatar-ph'>" + ((pilot && pilot.initials) ? pilot.initials : "---") + "</div>";
+            const consistency = (isFinite(p.avgLap) && p.avgLap > 0)
+              ? Math.max(0, Math.min(100, Math.round(100 - ((p.std || 0) / p.avgLap) * 220)))
+              : 0;
+            return "<div class='pilot-card'><div class='pilot-card-top'>" + avatar + "<div><b>" + (pilot ? (pilot.name + " (" + pilot.initials + ")") : "Piloto") + "</b><small>Mejor: " + best + " | Media: " + avg + "</small></div></div><small>Vueltas: " + p.laps.length + " | Puntos: " + p.points + " | Falsas salidas: " + (p.falseStarts || 0) + "</small><div class='pilot-meter'><div style='width:" + consistency + "%'></div></div><div class='pilot-meter-label'>Consistencia: " + consistency + "%</div></div>";
+          }).join("");
+
+        let html = "<div class='result-shell'>";
+        html += "<div class='result-head'><h3 class='result-title'>" + r.name + "</h3><span class='result-tag'>" + (r.type === "quick" ? "Quick Rally" : "Rally") + "</span></div>";
+        html += "<p>Track: " + (track ? track.name : "--") + " | Penalizacion: " + r.penaltySec + "s | Fecha: " + new Date(r.createdAt).toLocaleString() + "</p>";
+        html += "<div class='result-grid'><div><div class='result-section-title'>Pilotos</div><div class='pilot-cards'>" + (pilotCards || "<div class='pilot-card'><small>Sin detalle de pilotos</small></div>") + "</div></div><div>";
+
+        html += "<div class='result-section-title'>Ranking mejor vuelta</div><table><thead><tr><th>#</th><th>Piloto</th><th class='right'>Tiempo</th></tr></thead><tbody>";
+        bestRanking.forEach(it => {
+          const p = getPilot(it.pilotId);
+          html += "<tr><td>" + it.pos + "</td><td>" + (p ? p.name : "--") + "</td><td class='right'>" + fmt(it.value) + "</td></tr>";
+        });
+        html += "</tbody></table>";
+        html += "<div class='result-section-title'>Ranking puntos</div><table><thead><tr><th>#</th><th>Piloto</th><th class='right'>Puntos</th></tr></thead><tbody>";
+        pointsRanking.forEach(it => {
+          const p = getPilot(it.pilotId);
+          html += "<tr><td>" + it.pos + "</td><td>" + (p ? p.name : "--") + "</td><td class='right'>" + it.value + "</td></tr>";
+        });
+        html += "</tbody></table>";
+        html += "</div></div>";
+
+        html += "<div class='result-section-title'>Detalle completo de tiempos</div>";
+        html += "<table><thead><tr><th>Piloto</th><th class='right'>Tanda</th><th class='right'>Vuelta</th><th class='right'>Raw</th><th class='right'>Pen</th><th class='right'>Total</th></tr></thead><tbody>";
+        let hasRows = false;
+        (r.turns || []).forEach(turn => {
+          const pilot = getPilot(turn.pilotId);
+          const laps = turn.laps || [];
+          if (!laps.length) {
+            html += "<tr><td>" + (pilot ? pilot.name : "--") + "</td><td class='right'>" + (turn.heatIndex || 1) + "</td><td class='right'>-</td><td class='right'>-</td><td class='right'>-</td><td class='right'>Sin vueltas</td></tr>";
+            hasRows = true;
+            return;
+          }
+          laps.forEach((lap, i) => {
+            html += "<tr><td>" + (pilot ? pilot.name : "--") + "</td><td class='right'>" + (turn.heatIndex || 1) + "</td><td class='right'>" + (i + 1) + "</td><td class='right'>" + fmt(lap.rawMs) + "</td><td class='right'>" + (lap.penaltyMs ? ("+" + fmt(lap.penaltyMs)) : "-") + "</td><td class='right'>" + fmt(lap.totalMs) + "</td></tr>";
+            hasRows = true;
+          });
+        });
+        if (!hasRows) html += "<tr><td colspan='6'>Sin tiempos registrados</td></tr>";
+        html += "</tbody></table>";
+        html += "</div>";
+        historyDetail.innerHTML = html;
+      }
+
+      function selectHistoryRally(id) {
+        selectedHistoryId = id;
+        renderHistory();
+        const rally = store.rallies.find(r => r.id === id);
+        if (rally) renderHistoryDetail(rally);
+      }
+
+      function renderHistory() {
+        historyList.innerHTML = "";
+        if (!store.rallies.length) {
+          historyList.innerHTML = '<div class="hint">Aun no hay rallies guardados.</div>';
+          historyDetail.textContent = "Selecciona un rally para ver detalle.";
+          historySelectedHint.textContent = "Rally seleccionado: ninguno";
+          selectedHistoryId = null;
+          return;
+        }
+        if (!selectedHistoryId || !store.rallies.some(r => r.id === selectedHistoryId)) {
+          selectedHistoryId = store.rallies[0].id;
+        }
+        store.rallies.forEach(r => {
+          const card = rallyCardText(r);
+          const item = document.createElement("div");
+          item.className = "item" + (r.id === selectedHistoryId ? " selected" : "");
+          item.innerHTML = '<div class="meta"><b>' + card.title + '</b><small>' + card.sub + '</small><div class="chip-row">' + card.chips.map(c => '<span class="chip">' + c + '</span>').join("") + '</div></div><div class="actions"><button class="mini-btn" data-act="open">Ver</button><button class="mini-btn" data-act="share">Compartir</button></div>';
+          item.addEventListener("click", () => selectHistoryRally(r.id));
+          item.querySelector('[data-act="open"]').addEventListener("click", (ev) => {
+            ev.stopPropagation();
+            selectHistoryRally(r.id);
+          });
+          item.querySelector('[data-act="share"]').addEventListener("click", (ev) => {
+            ev.stopPropagation();
+            shareText("Resultado rally", buildShareText(r));
+          });
+          historyList.appendChild(item);
+        });
+        const selected = store.rallies.find(r => r.id === selectedHistoryId);
+        if (selected) renderHistoryDetail(selected);
+      }
+
+      document.getElementById("clearHistory").addEventListener("click", () => {
+        if (!confirm("Borrar todo el historial?")) return;
+        store.rallies = [];
+        saveStore();
+        selectedHistoryId = null;
+        renderHistory();
+        renderPilots();
+        renderTracks();
+      });
+
+      document.getElementById("shareLastHistory").addEventListener("click", () => {
+        const last = store.rallies[0];
+        if (!last) return alert("No hay resultados");
+        shareText("Ultimo rally", buildShareText(last));
+      });
+
+      setBleUi(false, "BLE desconectado");
+
+      renderProfiles();
+      loadProfileToUi();
+      renderPilots();
+      renderTracks();
+      refreshPilotSelectors();
+      refreshTrackSelectors();
+      renderOrderList();
+      renderHistory();
+      runTimerLoop();
+    })();
+  </script>
+</body>
+</html>

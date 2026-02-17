@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Quick Rally">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b2133"/>
+      <stop offset="1" stop-color="#113c5a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#g)"/>
+  <circle cx="260" cy="280" r="170" fill="#2cd6ff" opacity="0.25"/>
+  <path d="M180 480h640l120-120h160l70 60v60h-80v80h-70v-80H290v80h-70v-80h-40z" fill="#d8f7ff" opacity="0.92"/>
+  <circle cx="360" cy="560" r="58" fill="#071421"/>
+  <circle cx="840" cy="560" r="58" fill="#071421"/>
+  <text x="70" y="90" fill="#b8f5ff" font-size="62" font-family="Segoe UI, Arial" font-weight="700">WRC / GROUP B</text>
+</svg>

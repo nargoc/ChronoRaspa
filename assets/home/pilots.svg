@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Pilots">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2b1e0d"/>
+      <stop offset="1" stop-color="#5a3f14"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#g)"/>
+  <circle cx="430" cy="320" r="130" fill="#ffe8bd" opacity="0.9"/>
+  <circle cx="770" cy="320" r="130" fill="#ffe8bd" opacity="0.9"/>
+  <rect x="300" y="430" width="260" height="220" rx="80" fill="#fff3d9" opacity="0.9"/>
+  <rect x="640" y="430" width="260" height="220" rx="80" fill="#fff3d9" opacity="0.9"/>
+  <rect x="360" y="250" width="140" height="80" rx="20" fill="#0f1a22"/>
+  <rect x="700" y="250" width="140" height="80" rx="20" fill="#0f1a22"/>
+  <text x="70" y="95" fill="#ffecc4" font-size="62" font-family="Segoe UI, Arial" font-weight="700">DRIVER / CO-DRIVER</text>
+</svg>

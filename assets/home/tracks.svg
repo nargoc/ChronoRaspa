@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Tracks">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f2730"/>
+      <stop offset="1" stop-color="#274c55"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#g)"/>
+  <path d="M70 640c190-190 360-20 520-200 130-145 280-180 540-180v180H70z" fill="#9dd3e2" opacity="0.4"/>
+  <path d="M70 700c220-220 380-55 560-220 120-110 250-145 500-145v180H70z" fill="#e9f8ff" opacity="0.87"/>
+  <path d="M170 665c170-145 305-35 420-145 84-80 160-108 300-108" stroke="#3f6474" stroke-width="10" fill="none" stroke-dasharray="16 16"/>
+  <text x="70" y="95" fill="#d6f3ff" font-size="62" font-family="Segoe UI, Arial" font-weight="700">RALLY FINLAND STYLE STAGE</text>
+</svg>
