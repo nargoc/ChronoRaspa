@@ -429,11 +429,15 @@
       background: radial-gradient(circle at 20% 0%, #0a2638, #03080f 55%);
       z-index: 80;
       display: none;
-      overflow: auto;
+      overflow: hidden;
       padding: calc(12px + var(--safe-t)) 12px calc(84px + var(--safe-b));
     }
 
-    .race-screen.show { display: block; }
+    .race-screen.show {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
 
     .race-head {
       display: flex;
@@ -464,16 +468,17 @@
     }
 
     .touch-start {
-      margin-top: 14px;
-      border: 1px dashed #4fcfff;
-      border-radius: 18px;
+      margin-top: 8px;
+      border: 1px solid rgba(205, 192, 255, 0.3);
+      border-radius: 20px;
       padding: 20px 12px;
       text-align: center;
       font-size: 18px;
       font-weight: 800;
-      color: #d7e3f7;
-      background: rgba(11, 32, 50, 0.45);
-      min-height: min(52vh, 420px);
+      color: #efeaff;
+      background: linear-gradient(180deg, rgba(63, 51, 94, 0.72), rgba(39, 31, 63, 0.78));
+      box-shadow: 0 16px 34px rgba(0, 0, 0, 0.35);
+      min-height: calc(100vh - 132px - var(--safe-b) - var(--safe-t));
       display: grid;
       place-items: center;
     }
@@ -535,6 +540,44 @@
 
     .big-time.running {
       font-size: clamp(92px, 24vw, 180px);
+    }
+
+    .race-main {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(250px, 0.9fr) minmax(0, 1.1fr);
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    .race-left {
+      min-height: 0;
+      display: grid;
+      align-content: start;
+      gap: 8px;
+    }
+
+    .lap-count {
+      font-size: 22px;
+      font-weight: 900;
+      color: #ffb15a;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    .race-right {
+      min-height: 0;
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    #raceLapsCard {
+      margin: 0;
+    }
+
+    #raceLapsCard table {
+      margin-top: 6px;
     }
 
     .live-grid {
@@ -1185,6 +1228,9 @@
         padding-left: 18px;
         padding-right: 18px;
       }
+      .touch-start {
+        min-height: calc(100vh - 116px - var(--safe-b) - var(--safe-t));
+      }
     }
   </style>
 </head>
@@ -1485,24 +1531,31 @@
 
     <div class="touch-start" id="touchStartBox">Toca para iniciar salida</div>
 
-    <div class="big-time" id="raceBigTime">00:00.000</div>
+    <div class="race-main" id="raceMain">
+      <div class="race-left">
+        <div class="lap-count" id="raceLapBig">Vuelta 0</div>
+        <div class="big-time" id="raceBigTime">00:00.000</div>
 
-    <div class="live-grid" id="raceLiveGrid">
-      <div class="stat last" id="raceLastStat"><div class="k">Ultima vuelta</div><div class="v" id="raceLastLap">--:--.---</div></div>
-      <div class="stat best" id="raceBestStat"><div class="k">Mejor vuelta</div><div class="v" id="raceBestLap">--:--.---</div></div>
-    </div>
+        <div class="live-grid" id="raceLiveGrid">
+          <div class="stat best" id="raceBestStat"><div class="k">Mejor vuelta</div><div class="v" id="raceBestLap">--:--.---</div></div>
+          <div class="stat last" id="raceLastStat"><div class="k">Ultima vuelta</div><div class="v" id="raceLastLap">--:--.---</div></div>
+        </div>
 
-    <div class="progress" id="raceProgress">Progresion: --</div>
-    <div class="hint" id="raceMiniMsg">Esperando toque para semaforo...</div>
+        <div class="progress" id="raceProgress">Progresion: --</div>
+        <div class="hint" id="raceMiniMsg">Esperando toque para semaforo...</div>
+      </div>
 
-    <div class="card" id="raceLapsCard">
-      <h3>Vueltas</h3>
-      <table>
-        <thead>
-          <tr><th>#</th><th class="right">Tiempo</th><th class="right">Delta</th><th>Estado</th></tr>
-        </thead>
-        <tbody id="raceLapTable"></tbody>
-      </table>
+      <div class="race-right">
+        <div class="card" id="raceLapsCard">
+          <h3>Tiempos</h3>
+          <table>
+            <thead>
+              <tr><th>#</th><th class="right">Tiempo</th><th class="right">Delta</th><th>Estado</th></tr>
+            </thead>
+            <tbody id="raceLapTable"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
   </section>
@@ -1613,9 +1666,12 @@
       };
 
       const raceUI = {
+        head: document.querySelector("#raceScreen .race-head"),
+        main: document.getElementById("raceMain"),
         pilotBadge: document.getElementById("racePilotBadge"),
         trackBadge: document.getElementById("raceTrackBadge"),
         lapBadge: document.getElementById("raceLapBadge"),
+        lapBig: document.getElementById("raceLapBig"),
         modeBadge: document.getElementById("raceModeBadge"),
         touchBox: document.getElementById("touchStartBox"),
         bigTime: document.getElementById("raceBigTime"),
@@ -1877,9 +1933,8 @@
       const soundHorn = () => beep(420, 0.5, "sawtooth", 0.09);
 
       function showOnlyNextPilot(showOnly) {
-        [raceUI.bigTime, raceUI.liveGrid, raceUI.progress, raceUI.mini, raceUI.lapsCard].forEach(el => {
-          el.classList.toggle("hide", showOnly);
-        });
+        raceUI.head.classList.toggle("hide", showOnly);
+        raceUI.main.classList.toggle("hide", showOnly);
         raceUI.touchBox.classList.toggle("hide", !showOnly);
       }
 
@@ -2868,6 +2923,7 @@
         const prevLapCount = Number(raceUI.lapTable.dataset.lastCount || 0);
         const target = t.targetLaps ? ("/" + t.targetLaps) : "";
         raceUI.lapBadge.textContent = "Vuelta: " + lapNum + target;
+        raceUI.lapBig.textContent = "Vuelta " + lapNum + target;
         raceUI.lastLap.textContent = isFinite(t.lastLapMs) ? fmt(t.lastLapMs) : "--:--.---";
         raceUI.bestLap.textContent = isFinite(t.bestLapMs) ? fmt(t.bestLapMs) : "--:--.---";
         raceUI.lapTable.innerHTML = "";
