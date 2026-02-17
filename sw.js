@@ -1,4 +1,4 @@
-const CACHE_NAME = "scalex-rally-v2";
+const CACHE_NAME = "scalex-rally-v3";
 const ASSETS = [
   "./assets/home/quick.png",
   "./assets/home/create.png",
@@ -19,6 +19,12 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))).then(() => self.clients.claim())
   );
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener("fetch", (event) => {

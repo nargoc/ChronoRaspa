@@ -1929,11 +1929,38 @@
       async function setupServiceWorker() {
         if (!("serviceWorker" in navigator)) return;
         try {
-          const reg = await navigator.serviceWorker.register("./sw.js", {
+          const swVersion = "v3";
+          const migrationKey = "sw_migrated_" + swVersion;
+
+          if (!localStorage.getItem(migrationKey)) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map((r) => r.unregister()));
+            if ("caches" in window) {
+              const keys = await caches.keys();
+              await Promise.all(keys.filter((k) => k.startsWith("scalex-rally-")).map((k) => caches.delete(k)));
+            }
+            localStorage.setItem(migrationKey, "1");
+          }
+
+          const reg = await navigator.serviceWorker.register("./sw.js?v=" + swVersion, {
             scope: "./",
             updateViaCache: "none"
           });
           reg.update();
+
+          if (reg.waiting) {
+            reg.waiting.postMessage("SKIP_WAITING");
+          }
+
+          reg.addEventListener("updatefound", () => {
+            const newWorker = reg.installing;
+            if (!newWorker) return;
+            newWorker.addEventListener("statechange", () => {
+              if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+                newWorker.postMessage("SKIP_WAITING");
+              }
+            });
+          });
 
           navigator.serviceWorker.addEventListener("controllerchange", () => {
             if (window.__swReloaded) return;
