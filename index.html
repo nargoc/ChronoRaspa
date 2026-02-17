@@ -2002,8 +2002,21 @@
 
       let deferredInstallPrompt = null;
 
+      function isStandaloneMode() {
+        return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+      }
+
+      function isIosSafari() {
+        const ua = window.navigator.userAgent || "";
+        const isIOS = /iPad|iPhone|iPod/.test(ua);
+        const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua);
+        return isIOS && isSafari;
+      }
+
       function updateInstallButton() {
-        installAppBtn.classList.toggle("hide", !deferredInstallPrompt);
+        const installed = isStandaloneMode();
+        installAppBtn.classList.toggle("hide", installed);
+        installAppBtn.textContent = "Instalar";
       }
 
       async function setupInstallPrompt() {
@@ -2019,13 +2032,21 @@
         });
 
         installAppBtn.addEventListener("click", async () => {
-          if (!deferredInstallPrompt) return;
-          deferredInstallPrompt.prompt();
-          try {
-            await deferredInstallPrompt.userChoice;
-          } catch {}
-          deferredInstallPrompt = null;
-          updateInstallButton();
+          if (deferredInstallPrompt) {
+            deferredInstallPrompt.prompt();
+            try {
+              await deferredInstallPrompt.userChoice;
+            } catch {}
+            deferredInstallPrompt = null;
+            updateInstallButton();
+            return;
+          }
+
+          if (isIosSafari()) {
+            alert("En iPhone/iPad: pulsa Compartir y luego 'Anadir a pantalla de inicio'.");
+          } else {
+            alert("Si no aparece el popup, abre el menu del navegador y elige 'Instalar app' o 'Anadir a pantalla de inicio'.");
+          }
         });
       }
 
