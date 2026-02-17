@@ -1036,7 +1036,7 @@
       inset: 0;
       z-index: 90;
       display: none;
-      background: radial-gradient(circle at 50% 22%, #0d1118, #000000 70%);
+      background: radial-gradient(circle at 50% 22%, #110f18, #000000 72%);
       place-items: stretch;
       padding: 0;
     }
@@ -1048,68 +1048,87 @@
       height: 100vh;
       border: none;
       border-radius: 0;
-      background: radial-gradient(circle at 50% 14%, #101a26, #05080e 72%);
-      padding: calc(10px + var(--safe-t)) 12px 18px;
+      background: radial-gradient(circle at 50% 14%, #151224, #06070d 72%);
+      padding: calc(10px + var(--safe-t)) 10px 10px;
       box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.6);
       display: flex;
       flex-direction: column;
+      gap: 10px;
     }
 
     .sema-title {
       text-align: center;
-      font-size: 13px;
-      color: #9ab1d0;
-      margin-bottom: 10px;
-      letter-spacing: 0.6px;
+      font-size: 12px;
+      color: #c7c0e8;
+      letter-spacing: 1px;
       font-weight: 800;
+      text-transform: uppercase;
     }
 
     .light-wall {
       flex: 1;
       display: grid;
-      grid-template-columns: repeat(6, min-content);
-      gap: 6px;
-      align-items: stretch;
-      justify-content: center;
-      justify-items: center;
-      width: auto;
-      padding: 4px 0;
-      margin: 0 auto;
-    }
-
-    .light-stack {
-      display: grid;
-      grid-template-rows: repeat(4, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 8px;
-      justify-items: center;
-      align-items: center;
-      height: 100%;
+      min-height: 0;
     }
 
     .light {
-      width: min(12vh, 94px);
-      height: min(12vh, 94px);
-      border-radius: 50%;
-      border: 2px solid #2c3443;
-      background: #1a202b;
-      box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.65);
+      position: relative;
+      border-radius: 10px;
+      border: 1px solid rgba(188, 171, 255, 0.25);
+      background:
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.035) 0 3px, rgba(0, 0, 0, 0) 3px 6px),
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0 3px, rgba(0, 0, 0, 0) 3px 6px),
+        linear-gradient(180deg, #1b1a28, #11101a);
+      box-shadow: inset 0 0 22px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
     }
 
-    @media (orientation: landscape) {
-      .light { width: min(13.5vh, 102px); height: min(13.5vh, 102px); }
-      .light-wall { gap: 8px; }
-      .light-stack { gap: 10px; }
+    .light::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 140ms ease;
+      background:
+        repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.12) 0 2px, rgba(255, 255, 255, 0.05) 2px 4px),
+        repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0 2px, rgba(255, 255, 255, 0.04) 2px 4px);
+      mix-blend-mode: screen;
     }
 
-    .light.red.on { background: #ff2f3d; box-shadow: 0 0 22px #ff2f3d, 0 0 42px rgba(255, 47, 61, 0.5); border-color: #ff4d5a; }
-    .light.amber.on { background: #ffc624; box-shadow: 0 0 24px #ffc624, 0 0 44px rgba(255, 198, 36, 0.5); border-color: #ffd961; }
-    .light.green.on { background: #2ee37d; box-shadow: 0 0 24px #2ee37d, 0 0 44px rgba(46, 227, 125, 0.5); border-color: #66f0a1; }
+    .light.red.on {
+      background:
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.06) 0 4px, rgba(0, 0, 0, 0.03) 4px 8px),
+        linear-gradient(180deg, #ff5d64, #c41726);
+      box-shadow: inset 0 0 24px rgba(255, 255, 255, 0.12), 0 0 22px rgba(255, 50, 70, 0.55);
+      border-color: rgba(255, 140, 150, 0.85);
+    }
+
+    .light.amber.on {
+      background:
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.06) 0 4px, rgba(0, 0, 0, 0.03) 4px 8px),
+        linear-gradient(180deg, #ffd26f, #d88f0a);
+      box-shadow: inset 0 0 24px rgba(255, 255, 255, 0.12), 0 0 22px rgba(255, 196, 58, 0.52);
+      border-color: rgba(255, 220, 138, 0.85);
+    }
+
+    .light.green.on {
+      background:
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.06) 0 4px, rgba(0, 0, 0, 0.03) 4px 8px),
+        linear-gradient(180deg, #76f6ab, #1f9e52);
+      box-shadow: inset 0 0 24px rgba(255, 255, 255, 0.12), 0 0 24px rgba(67, 235, 132, 0.52);
+      border-color: rgba(143, 255, 191, 0.85);
+    }
+
+    .light.on::before {
+      opacity: 1;
+    }
 
     .sema-msg {
-      margin-top: 12px;
       text-align: center;
-      font-size: 14px;
-      color: #c9d8ef;
+      font-size: 13px;
+      color: #d2c9f2;
       min-height: 22px;
     }
 
@@ -1675,42 +1694,10 @@
     <div class="sema-body">
       <div class="sema-title">SALIDA</div>
       <div class="light-wall">
-        <div class="light-stack">
-          <div class="light red" data-light="L1"></div>
-          <div class="light red" data-light="L2"></div>
-          <div class="light amber" data-light="L3"></div>
-          <div class="light green" data-light="L4"></div>
-        </div>
-        <div class="light-stack">
-          <div class="light red" data-light="L1"></div>
-          <div class="light red" data-light="L2"></div>
-          <div class="light amber" data-light="L3"></div>
-          <div class="light green" data-light="L4"></div>
-        </div>
-        <div class="light-stack">
-          <div class="light red" data-light="L1"></div>
-          <div class="light red" data-light="L2"></div>
-          <div class="light amber" data-light="L3"></div>
-          <div class="light green" data-light="L4"></div>
-        </div>
-        <div class="light-stack">
-          <div class="light red" data-light="L1"></div>
-          <div class="light red" data-light="L2"></div>
-          <div class="light amber" data-light="L3"></div>
-          <div class="light green" data-light="L4"></div>
-        </div>
-        <div class="light-stack">
-          <div class="light red" data-light="L1"></div>
-          <div class="light red" data-light="L2"></div>
-          <div class="light amber" data-light="L3"></div>
-          <div class="light green" data-light="L4"></div>
-        </div>
-        <div class="light-stack">
-          <div class="light red" data-light="L1"></div>
-          <div class="light red" data-light="L2"></div>
-          <div class="light amber" data-light="L3"></div>
-          <div class="light green" data-light="L4"></div>
-        </div>
+        <div class="light red" data-light="L1"></div>
+        <div class="light red" data-light="L2"></div>
+        <div class="light amber" data-light="L3"></div>
+        <div class="light green" data-light="L4"></div>
       </div>
       <div class="sema-msg" id="semaMsg">Preparado...</div>
     </div>
