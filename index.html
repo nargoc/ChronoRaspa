@@ -108,11 +108,24 @@
 
     .back-btn {
       border-radius: 8px;
-      padding: 4px 7px;
-      font-size: 12px;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      font-size: 0;
       margin-left: 0;
-      width: auto;
       min-width: 0;
+      display: inline-grid;
+      place-items: center;
+    }
+
+    .back-icon {
+      width: 15px;
+      height: 15px;
+      stroke: #efeaff;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
     #homeSettingsBtn {
@@ -1401,7 +1414,7 @@
 <body>
   <header>
     <div class="header-left">
-      <button class="back-btn" id="backBtn">Atras</button>
+      <button class="back-btn" id="backBtn" title="Atras" aria-label="Atras"><svg class="back-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></button>
       <div class="title-wrap">
         <h1 class="title" id="appTitle">RaspaTimer</h1>
         <div class="subtitle" id="appSubtitle"></div>
