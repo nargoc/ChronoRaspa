@@ -7,6 +7,8 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" href="assets/icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
   <title>Scalex Rally App</title>
   <style>
@@ -2053,7 +2055,7 @@
       async function setupServiceWorker() {
         if (!("serviceWorker" in navigator)) return;
         try {
-          const swVersion = "v3";
+          const swVersion = "v4";
           const migrationKey = "sw_migrated_" + swVersion;
 
           if (!localStorage.getItem(migrationKey)) {

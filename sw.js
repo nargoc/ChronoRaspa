@@ -1,12 +1,12 @@
-const CACHE_NAME = "scalex-rally-v3";
+const CACHE_NAME = "scalex-rally-v4";
 const ASSETS = [
   "./assets/home/quick.png",
   "./assets/home/create.png",
   "./assets/home/pilots.png",
   "./assets/home/tracks.png",
   "./assets/home/history.png",
-  "./assets/icons/icon-192.svg",
-  "./assets/icons/icon-512.svg"
+  "./assets/icons/icon-192.png",
+  "./assets/icons/icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {
