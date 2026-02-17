@@ -3,6 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#040c14">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Scalex Rally App</title>
   <style>
     :root {
@@ -1183,6 +1187,12 @@
         </div>
         <div class="hint" id="bleStatusText">Estado: desconectado</div>
 
+        <div class="grid-2">
+          <button id="enableImmersive" class="primary">Pantalla completa</button>
+          <button id="enableWakeLock">Mantener pantalla activa</button>
+        </div>
+        <div class="hint" id="immersiveStatusText">Modo inmersivo: pendiente</div>
+
         <label>Threshold (thr)</label>
         <input id="bleThr" type="range" min="0" max="1023" step="1" value="450">
         <div class="hint">Valor: <b id="bleThrVal">450</b></div>
@@ -1385,6 +1395,7 @@
       const bleDot = document.getElementById("bleDot");
       const lapDot = document.getElementById("lapDot");
       const bleStatusText = document.getElementById("bleStatusText");
+      const immersiveStatusText = document.getElementById("immersiveStatusText");
 
       const bleFields = {
         thr: document.getElementById("bleThr"),
@@ -1626,6 +1637,24 @@
       backBtn.addEventListener("click", () => go("home"));
       document.querySelectorAll("[data-nav]").forEach(btn => btn.addEventListener("click", () => go(btn.dataset.nav)));
       document.getElementById("homeSettingsBtn").addEventListener("click", () => go("settings"));
+      document.getElementById("enableImmersive").addEventListener("click", activateImmersiveMode);
+      document.getElementById("enableWakeLock").addEventListener("click", requestWakeLockMode);
+
+      ["pointerdown", "touchstart", "keydown"].forEach(evt => {
+        window.addEventListener(evt, async () => {
+          if (deviceState.firstGestureDone) return;
+          deviceState.firstGestureDone = true;
+          await activateImmersiveMode();
+        }, { once: true, passive: true });
+      });
+
+      document.addEventListener("visibilitychange", async () => {
+        if (document.visibilityState === "visible") {
+          await requestWakeLockMode();
+        }
+      });
+
+      document.addEventListener("fullscreenchange", updateImmersiveStatus);
 
       let audioCtx = null;
       function ensureAudio() {
@@ -1668,6 +1697,65 @@
         lineBuf: "",
         connected: false
       };
+
+      const deviceState = {
+        wakeLock: null,
+        firstGestureDone: false
+      };
+
+      function updateImmersiveStatus() {
+        const fs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+        const wl = Boolean(deviceState.wakeLock);
+        immersiveStatusText.textContent = "Modo inmersivo: " + (fs ? "fullscreen OK" : "fullscreen OFF") + " | Wake lock: " + (wl ? "activo" : "OFF");
+      }
+
+      async function requestFullscreenMode() {
+        try {
+          if (document.fullscreenElement || document.webkitFullscreenElement) {
+            updateImmersiveStatus();
+            return true;
+          }
+          const el = document.documentElement;
+          if (el.requestFullscreen) {
+            await el.requestFullscreen({ navigationUI: "hide" });
+          } else if (el.webkitRequestFullscreen) {
+            el.webkitRequestFullscreen();
+          }
+          updateImmersiveStatus();
+          return true;
+        } catch {
+          updateImmersiveStatus();
+          return false;
+        }
+      }
+
+      async function requestWakeLockMode() {
+        if (!("wakeLock" in navigator)) {
+          updateImmersiveStatus();
+          return false;
+        }
+        try {
+          if (deviceState.wakeLock) {
+            updateImmersiveStatus();
+            return true;
+          }
+          deviceState.wakeLock = await navigator.wakeLock.request("screen");
+          deviceState.wakeLock.addEventListener("release", () => {
+            deviceState.wakeLock = null;
+            updateImmersiveStatus();
+          });
+          updateImmersiveStatus();
+          return true;
+        } catch {
+          updateImmersiveStatus();
+          return false;
+        }
+      }
+
+      async function activateImmersiveMode() {
+        await requestFullscreenMode();
+        await requestWakeLockMode();
+      }
 
       function setBleUi(connected, text) {
         bleState.connected = connected;
@@ -2478,6 +2566,7 @@
       }
 
       function startSession(config) {
+        activateImmersiveMode();
         session.active = true;
         session.type = config.type;
         session.name = config.name;
@@ -2981,6 +3070,7 @@
       });
 
       setBleUi(false, "BLE desconectado");
+      updateImmersiveStatus();
 
       renderProfiles();
       loadProfileToUi();
