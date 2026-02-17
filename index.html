@@ -439,6 +439,10 @@
       gap: 8px;
     }
 
+    .race-screen.next-only {
+      padding-bottom: calc(12px + var(--safe-b));
+    }
+
     .race-head {
       display: flex;
       gap: 10px;
@@ -481,12 +485,22 @@
       min-height: calc(100vh - 132px - var(--safe-b) - var(--safe-t));
       display: grid;
       place-items: center;
+      overflow: hidden;
+    }
+
+    .race-screen.next-only .touch-start {
+      margin-top: 0;
+      min-height: 0;
+      height: 100%;
     }
 
     .next-wrap {
       display: grid;
       justify-items: center;
       gap: 10px;
+      width: min(92vw, 620px);
+      margin: 0 auto;
+      text-align: center;
     }
 
     .next-label {
@@ -498,8 +512,8 @@
     }
 
     .next-photo {
-      width: min(44vw, 260px);
-      height: min(44vw, 260px);
+      width: clamp(180px, 46vw, 320px);
+      height: clamp(180px, 46vw, 320px);
       border-radius: 18px;
       border: 2px solid #58d6ff;
       object-fit: cover;
@@ -518,9 +532,11 @@
     .next-name {
       font-size: clamp(28px, 6.5vw, 52px);
       font-weight: 900;
-      line-height: 1;
+      line-height: 1.06;
       color: #f0f8ff;
       text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+      max-width: 100%;
+      word-break: break-word;
     }
 
     .next-tap {
@@ -546,7 +562,7 @@
       flex: 1;
       min-height: 0;
       display: grid;
-      grid-template-columns: minmax(250px, 0.9fr) minmax(0, 1.1fr);
+      grid-template-columns: 1fr;
       gap: 10px;
       overflow: hidden;
     }
@@ -1228,8 +1244,15 @@
         padding-left: 18px;
         padding-right: 18px;
       }
+      .race-main {
+        grid-template-columns: minmax(320px, 0.92fr) minmax(0, 1.08fr);
+      }
       .touch-start {
         min-height: calc(100vh - 116px - var(--safe-b) - var(--safe-t));
+      }
+      .next-photo {
+        width: min(34vh, 320px);
+        height: min(34vh, 320px);
       }
     }
   </style>
@@ -1933,6 +1956,7 @@
       const soundHorn = () => beep(420, 0.5, "sawtooth", 0.09);
 
       function showOnlyNextPilot(showOnly) {
+        raceScreen.classList.toggle("next-only", showOnly);
         raceUI.head.classList.toggle("hide", showOnly);
         raceUI.main.classList.toggle("hide", showOnly);
         raceUI.touchBox.classList.toggle("hide", !showOnly);
