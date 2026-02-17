@@ -117,10 +117,13 @@
 
     #homeSettingsBtn {
       border-radius: 8px;
-      padding: 6px 8px;
-      font-size: 12px;
-      width: auto;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      font-size: 15px;
       min-width: 0;
+      display: inline-grid;
+      place-items: center;
     }
 
     #installAppBtn {
@@ -942,8 +945,8 @@
     }
 
     .sensor-chip {
-      border: 1px solid #2f7393;
-      background: #0b2030;
+      border: 1px solid rgba(190, 175, 255, 0.28);
+      background: rgba(30, 25, 49, 0.72);
       border-radius: 8px;
       width: 28px;
       height: 28px;
@@ -952,8 +955,9 @@
       align-items: center;
       justify-content: center;
       gap: 0;
-      color: #c6f5ff;
+      color: #efeaff;
       white-space: nowrap;
+      box-shadow: 0 8px 14px rgba(0, 0, 0, 0.28);
     }
 
     #view-pilots .pilot-layout {
@@ -1148,23 +1152,27 @@
       white-space: nowrap;
     }
 
-    .ble-dot {
+    .sensor-dot {
       width: 12px;
       height: 12px;
       border-radius: 50%;
-      background: #35566d;
-      border: 1px solid #5a8aa6;
+      background: #ff5a66;
+      border: 1px solid #ff9ea7;
+      transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
     }
 
-    .ble-dot.on { background: #3ef4b0; border-color: #93ffdc; box-shadow: 0 0 12px rgba(62, 244, 176, 0.6); }
-    .lap-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #35566d;
-      transition: 220ms transform, 220ms background;
+    .sensor-dot.connected {
+      background: #3ef4b0;
+      border-color: #93ffdc;
+      box-shadow: 0 0 12px rgba(62, 244, 176, 0.6);
     }
-    .lap-dot.flash { background: #ffc629; box-shadow: 0 0 12px rgba(255, 198, 41, 0.6); transform: scale(1.35); }
+
+    .sensor-dot.pulse {
+      background: #ffc629;
+      border-color: #ffe29a;
+      box-shadow: 0 0 14px rgba(255, 198, 41, 0.75);
+      transform: scale(1.28);
+    }
 
     .hide { display: none !important; }
 
@@ -1361,10 +1369,9 @@
       </div>
     </div>
     <div class="header-tools">
-      <div class="sensor-chip" title="Estado BLE"><span class="ble-dot" id="bleDot"></span></div>
-      <div class="sensor-chip" title="Paso sensor"><span class="lap-dot" id="lapDot"></span></div>
+      <div class="sensor-chip" title="Estado sensor"><span class="sensor-dot" id="sensorDot"></span></div>
       <button id="installAppBtn" class="mini-btn hide">Instalar</button>
-      <button id="homeSettingsBtn" class="mini-btn">Settings</button>
+      <button id="homeSettingsBtn" class="mini-btn" title="Settings" aria-label="Settings">⚙</button>
     </div>
   </header>
 
@@ -1744,8 +1751,7 @@
         L4: [...document.querySelectorAll('[data-light="L4"]')]
       };
 
-      const bleDot = document.getElementById("bleDot");
-      const lapDot = document.getElementById("lapDot");
+      const sensorDot = document.getElementById("sensorDot");
       const bleStatusText = document.getElementById("bleStatusText");
       const bleKnownDevicesEl = document.getElementById("bleKnownDevices");
       const bleRememberedText = document.getElementById("bleRememberedText");
@@ -2268,13 +2274,13 @@
 
       function setBleUi(connected, text) {
         bleState.connected = connected;
-        bleDot.classList.toggle("on", connected);
+        sensorDot.classList.toggle("connected", connected);
         bleStatusText.textContent = "Estado: " + text;
       }
 
       function flashLapBottom() {
-        lapDot.classList.add("flash");
-        setTimeout(() => lapDot.classList.remove("flash"), 260);
+        sensorDot.classList.add("pulse");
+        setTimeout(() => sensorDot.classList.remove("pulse"), 260);
       }
 
       async function bleSend(text) {
