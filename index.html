@@ -556,6 +556,15 @@
       font-size: 12px;
     }
 
+    #sendPilotWhatsappBtn {
+      width: auto;
+      min-width: 0;
+      justify-self: start;
+      align-self: start;
+      padding: 7px 10px;
+      font-size: 12px;
+    }
+
     .big-time {
       font-size: clamp(56px, 13vw, 108px);
       font-weight: 900;
@@ -1606,6 +1615,7 @@
 
           <div class="progress" id="raceProgress">Progresion: --</div>
           <div class="hint" id="raceMiniMsg">Esperando toque para semaforo...</div>
+          <button id="sendPilotWhatsappBtn" class="mini-btn primary hide">Enviar WhatsApp piloto</button>
           <button id="sharePilotBtn" class="mini-btn">Compartir piloto</button>
         </div>
 
@@ -1745,6 +1755,7 @@
         bestLap: document.getElementById("raceBestLap"),
         progress: document.getElementById("raceProgress"),
         mini: document.getElementById("raceMiniMsg"),
+        sendPilotWhatsappBtn: document.getElementById("sendPilotWhatsappBtn"),
         sharePilotBtn: document.getElementById("sharePilotBtn"),
         lapTable: document.getElementById("raceLapTable"),
         lapsCard: document.getElementById("raceLapsCard")
@@ -1754,6 +1765,7 @@
       const quickTrackInfo = document.getElementById("quickTrackInfo");
       const createTrackInfo = document.getElementById("createTrackInfo");
       const historySelectedHint = document.getElementById("historySelectedHint");
+      let pendingPilotWhatsappUrl = "";
 
       function uid() {
         return Math.random().toString(16).slice(2) + Date.now().toString(16);
@@ -3017,6 +3029,8 @@
 
       function startSession(config) {
         activateImmersiveMode();
+        pendingPilotWhatsappUrl = "";
+        raceUI.sendPilotWhatsappBtn.classList.add("hide");
         session.active = true;
         session.type = config.type;
         session.name = config.name;
@@ -3147,6 +3161,8 @@
         }
         const q = session.queue[session.idx];
         session.turn = createTurn(q.pilotId, q.targetLaps, q.heatIndex);
+        pendingPilotWhatsappUrl = "";
+        raceUI.sendPilotWhatsappBtn.classList.add("hide");
         updateRaceHeader();
         refreshRaceUi();
         showOnlyNextPilot(true);
@@ -3332,17 +3348,22 @@
       function sendPilotWhatsappIfAvailable(turn) {
         const p = getPilot(turn.pilotId);
         const digits = normalizePhoneForWhatsApp(p && p.phone ? p.phone : "");
-        if (!digits) return;
+        if (!digits) {
+          pendingPilotWhatsappUrl = "";
+          raceUI.sendPilotWhatsappBtn.classList.add("hide");
+          return;
+        }
         const text = buildPilotTurnText(turn);
         const url = "https://wa.me/" + digits + "?text=" + encodeURIComponent(text);
+        pendingPilotWhatsappUrl = url;
+        raceUI.sendPilotWhatsappBtn.classList.remove("hide");
+
         const w = window.open(url, "_blank");
         if (!w) {
-          const a = document.createElement("a");
-          a.href = url;
-          a.target = "_blank";
-          a.rel = "noopener noreferrer";
-          a.click();
+          raceUI.mini.textContent = "WhatsApp listo: pulsa 'Enviar WhatsApp piloto'";
+          return;
         }
+        raceUI.mini.textContent = "WhatsApp abierto para " + (p ? p.name : "piloto");
       }
 
       function finishSession() {
@@ -3387,6 +3408,17 @@
         if (!session.turn) return;
         const msg = buildPilotTurnText(session.turn);
         shareText("Resultado piloto", msg);
+      });
+
+      raceUI.sendPilotWhatsappBtn.addEventListener("click", () => {
+        if (!pendingPilotWhatsappUrl) {
+          alert("Este piloto no tiene telefono configurado.");
+          return;
+        }
+        const w = window.open(pendingPilotWhatsappUrl, "_blank");
+        if (!w) {
+          window.location.href = pendingPilotWhatsappUrl;
+        }
       });
 
       function storeTurnInQueue() {
