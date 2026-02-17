@@ -1,8 +1,5 @@
-const CACHE_NAME = "scalex-rally-v1";
+const CACHE_NAME = "scalex-rally-v2";
 const ASSETS = [
-  "./",
-  "./index.html",
-  "./manifest.webmanifest",
   "./assets/home/quick.png",
   "./assets/home/create.png",
   "./assets/home/pilots.png",
@@ -26,6 +23,23 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+
+  const url = new URL(event.request.url);
+
+  // Always prefer fresh HTML/navigation to avoid stale UI.
+  if (event.request.mode === "navigate" || url.pathname.endsWith("/index.html")) {
+    event.respondWith(
+      fetch(event.request, { cache: "no-store" }).catch(() => caches.match("./index.html"))
+    );
+    return;
+  }
+
+  // Keep manifest and worker fresh as well.
+  if (url.pathname.endsWith("/manifest.webmanifest") || url.pathname.endsWith("/sw.js")) {
+    event.respondWith(fetch(event.request, { cache: "no-store" }).catch(() => caches.match(event.request)));
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;

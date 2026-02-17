@@ -1929,7 +1929,17 @@
       async function setupServiceWorker() {
         if (!("serviceWorker" in navigator)) return;
         try {
-          await navigator.serviceWorker.register("./sw.js", { scope: "./" });
+          const reg = await navigator.serviceWorker.register("./sw.js", {
+            scope: "./",
+            updateViaCache: "none"
+          });
+          reg.update();
+
+          navigator.serviceWorker.addEventListener("controllerchange", () => {
+            if (window.__swReloaded) return;
+            window.__swReloaded = true;
+            window.location.reload();
+          });
         } catch {}
       }
 
