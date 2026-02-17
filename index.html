@@ -1018,6 +1018,129 @@
 
     .hide { display: none !important; }
 
+    /* Neo Elegant Theme (applied globally) */
+    :root {
+      --neo-bg-1: #120f20;
+      --neo-bg-2: #1a1630;
+      --neo-card: rgba(67, 56, 99, 0.42);
+      --neo-card-2: rgba(56, 47, 86, 0.55);
+      --neo-line: rgba(196, 184, 255, 0.2);
+      --neo-text: #f1eeff;
+      --neo-sub: #c3bcdf;
+      --neo-accent: #ff8c6a;
+      --neo-violet: #8f86ff;
+    }
+
+    body {
+      background:
+        radial-gradient(480px 330px at 12% 12%, rgba(255, 140, 106, 0.17), transparent 70%),
+        radial-gradient(580px 380px at 85% 14%, rgba(112, 88, 255, 0.24), transparent 72%),
+        linear-gradient(180deg, var(--neo-bg-2), var(--neo-bg-1));
+      color: var(--neo-text);
+    }
+
+    body::before,
+    body::after {
+      opacity: 1;
+      background: none;
+    }
+
+    header {
+      background: rgba(20, 17, 35, 0.62);
+      border-bottom: 1px solid var(--neo-line);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .title { color: var(--neo-text); }
+    .subtitle { color: var(--neo-sub); }
+
+    .card {
+      background: linear-gradient(180deg, var(--neo-card), var(--neo-card-2));
+      border: 1px solid var(--neo-line);
+      border-radius: 18px;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(14px);
+    }
+
+    .menu-tile {
+      border: 1px solid rgba(210, 198, 255, 0.28);
+      background: linear-gradient(170deg, rgba(68, 58, 101, 0.7), rgba(45, 38, 74, 0.78));
+      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.38);
+    }
+
+    .menu-caption {
+      background: rgba(24, 20, 40, 0.5) !important;
+      border-top-color: rgba(210, 196, 255, 0.32) !important;
+      color: var(--neo-text);
+    }
+
+    input, select, button, textarea {
+      background: rgba(30, 25, 49, 0.72);
+      border: 1px solid rgba(190, 175, 255, 0.28);
+      color: var(--neo-text);
+      border-radius: 12px;
+    }
+
+    button.primary {
+      background: linear-gradient(180deg, #9a90ff, #756de9);
+      border-color: rgba(194, 186, 255, 0.7);
+      color: #f8f6ff;
+    }
+
+    button.success {
+      background: linear-gradient(180deg, #ffa883, #f08667);
+      border-color: rgba(255, 182, 153, 0.78);
+      color: #250e08;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 22px rgba(0, 0, 0, 0.34), 0 0 0 1px rgba(182, 169, 255, 0.35);
+    }
+
+    .item {
+      background: rgba(28, 24, 46, 0.7);
+      border: 1px solid rgba(184, 170, 250, 0.24);
+    }
+
+    .item.selected {
+      border-color: rgba(255, 158, 126, 0.68);
+      background: linear-gradient(160deg, rgba(81, 62, 100, 0.8), rgba(42, 32, 64, 0.9));
+      box-shadow: 0 0 0 1px rgba(255, 158, 126, 0.3), 0 10px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .badge {
+      color: var(--neo-sub);
+    }
+
+    .stat,
+    .progress,
+    .result-shell,
+    .pilot-card,
+    .pilot-detail,
+    .modal-card {
+      background: rgba(30, 24, 48, 0.76);
+      border-color: rgba(184, 170, 250, 0.24);
+      color: var(--neo-text);
+    }
+
+    .result-section-title,
+    .group-summary,
+    .pilot-meter-label {
+      color: var(--neo-accent);
+    }
+
+    .hint,
+    .meta small,
+    .selection-hint,
+    .group-meta,
+    label {
+      color: var(--neo-sub);
+    }
+
+    th { color: #ffd1b8; }
+
     @media (orientation: landscape) {
       main {
         max-width: 100vw;
