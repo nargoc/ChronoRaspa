@@ -561,8 +561,8 @@
     .race-main {
       flex: 1;
       min-height: 0;
-      display: grid;
-      grid-template-columns: 1fr;
+      display: flex;
+      flex-direction: column;
       gap: 10px;
       overflow: hidden;
     }
@@ -572,6 +572,8 @@
       display: grid;
       align-content: start;
       gap: 8px;
+      min-width: 0;
+      overflow: auto;
     }
 
     .lap-count {
@@ -584,8 +586,11 @@
 
     .race-right {
       min-height: 0;
+      min-width: 0;
       overflow: auto;
       padding-right: 2px;
+      position: relative;
+      z-index: 1;
     }
 
     #raceLapsCard {
@@ -1244,9 +1249,9 @@
         padding-left: 18px;
         padding-right: 18px;
       }
-      .race-main {
-        grid-template-columns: minmax(320px, 0.92fr) minmax(0, 1.08fr);
-      }
+      .race-main { flex-direction: row; }
+      .race-left { flex: 0 0 42%; max-width: 42%; }
+      .race-right { flex: 1; }
       .touch-start {
         min-height: calc(100vh - 116px - var(--safe-b) - var(--safe-t));
       }
@@ -1254,6 +1259,12 @@
         width: min(34vh, 320px);
         height: min(34vh, 320px);
       }
+    }
+
+    @media (min-aspect-ratio: 11/9) {
+      .race-main { flex-direction: row; }
+      .race-left { flex: 0 0 42%; max-width: 42%; }
+      .race-right { flex: 1; }
     }
   </style>
 </head>
