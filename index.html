@@ -547,6 +547,15 @@
       color: #9fc3d8;
     }
 
+    #sharePilotBtn {
+      width: auto;
+      min-width: 0;
+      justify-self: start;
+      align-self: start;
+      padding: 7px 10px;
+      font-size: 12px;
+    }
+
     .big-time {
       font-size: clamp(56px, 13vw, 108px);
       font-weight: 900;
@@ -1535,10 +1544,16 @@
     <div class="modal-card">
       <h3 id="pilotModalTitle">Nuevo piloto</h3>
       <input type="hidden" id="pilotEditId">
+      <div class="grid-2">
+        <button id="importPilotContact" class="mini-btn">Importar contacto</button>
+        <div class="hint">Rellena nombre y telefono</div>
+      </div>
       <label>Nombre</label>
       <input id="pilotName" type="text" placeholder="Nombre piloto">
       <label>Iniciales (3)</label>
       <input id="pilotInitials" type="text" maxlength="3" placeholder="ABC">
+      <label>Telefono (opcional)</label>
+      <input id="pilotPhone" type="tel" placeholder="Ej: +34600111222">
       <label>Foto</label>
       <input id="pilotPhoto" type="file" accept="image/*" capture="environment">
       <div class="grid-3">
@@ -1591,6 +1606,7 @@
 
           <div class="progress" id="raceProgress">Progresion: --</div>
           <div class="hint" id="raceMiniMsg">Esperando toque para semaforo...</div>
+          <button id="sharePilotBtn" class="mini-btn">Compartir piloto</button>
         </div>
 
         <div class="race-right">
@@ -1729,6 +1745,7 @@
         bestLap: document.getElementById("raceBestLap"),
         progress: document.getElementById("raceProgress"),
         mini: document.getElementById("raceMiniMsg"),
+        sharePilotBtn: document.getElementById("sharePilotBtn"),
         lapTable: document.getElementById("raceLapTable"),
         lapsCard: document.getElementById("raceLapsCard")
       };
@@ -2398,21 +2415,27 @@
         editId: document.getElementById("pilotEditId"),
         name: document.getElementById("pilotName"),
         initials: document.getElementById("pilotInitials"),
+        phone: document.getElementById("pilotPhone"),
         photo: document.getElementById("pilotPhoto"),
+        importContact: document.getElementById("importPilotContact"),
         list: document.getElementById("pilotList"),
         detail: document.getElementById("pilotDetail"),
         modal: document.getElementById("pilotModal"),
         modalTitle: document.getElementById("pilotModalTitle")
       };
       let selectedPilotId = null;
+      let pilotModalReturnView = null;
+      let trackModalReturnView = null;
 
-      function openPilotModal(id) {
+      function openPilotModal(id, returnView = null) {
+        pilotModalReturnView = returnView;
         if (id) {
           const p = getPilot(id);
           if (!p) return;
           pilotEls.editId.value = p.id;
           pilotEls.name.value = p.name;
           pilotEls.initials.value = p.initials;
+          pilotEls.phone.value = p.phone || "";
           pilotEls.photo.value = "";
           pilotEls.modalTitle.textContent = "Editar piloto";
         } else {
@@ -2426,6 +2449,10 @@
         pilotEls.modal.classList.remove("show");
         resetPilotForm();
         renderPilots();
+        if (pilotModalReturnView) {
+          go(pilotModalReturnView);
+          pilotModalReturnView = null;
+        }
       }
 
       function getPilotStats(id) {
@@ -2536,12 +2563,14 @@
         pilotEls.editId.value = "";
         pilotEls.name.value = "";
         pilotEls.initials.value = "";
+        pilotEls.phone.value = "";
         pilotEls.photo.value = "";
       }
 
       async function savePilot() {
         const name = sanitizeName(pilotEls.name.value);
         const initials = toInitials(pilotEls.initials.value);
+        const phone = sanitizeName(pilotEls.phone.value);
         if (!name) return alert("Nombre obligatorio");
         if (!initials || initials.length !== 3) return alert("Iniciales de 3 caracteres");
         const editId = pilotEls.editId.value;
@@ -2553,10 +2582,11 @@
           if (!p) return;
           p.name = name;
           p.initials = initials;
+          p.phone = phone;
           if (newPhoto) p.photo = newPhoto;
         } else {
           savedId = uid();
-          store.pilots.push({ id: savedId, name, initials, photo: newPhoto, createdAt: nowIso() });
+          store.pilots.push({ id: savedId, name, initials, phone, photo: newPhoto, createdAt: nowIso() });
         }
         if (!saveStore()) return;
         resetPilotForm();
@@ -2599,7 +2629,7 @@
           const stats = getPilotStats(p.id);
           const row = document.createElement("div");
           row.className = "item" + (p.id === selectedPilotId ? " selected" : "");
-          row.innerHTML = '<div class="left-wrap">' + renderAvatar(p.photo, p.initials) + '<div class="meta"><b>' + p.name + ' (' + p.initials + ')</b><small>' + (stats.count ? ('Mejor: ' + fmt(stats.best) + ' | Vueltas: ' + stats.count) : 'Sin vueltas registradas') + '</small></div></div>' +
+          row.innerHTML = '<div class="left-wrap">' + renderAvatar(p.photo, p.initials) + '<div class="meta"><b>' + p.name + ' (' + p.initials + ')</b><small>' + (stats.count ? ('Mejor: ' + fmt(stats.best) + ' | Vueltas: ' + stats.count) : 'Sin vueltas registradas') + (p.phone ? (' | WhatsApp: ' + p.phone) : '') + '</small></div></div>' +
             '<div class="actions"><button class="mini-btn" data-act="edit">Editar</button><button class="mini-btn danger" data-act="del">Borrar</button></div>';
           row.addEventListener("click", () => {
             selectedPilotId = p.id;
@@ -2616,6 +2646,28 @@
       document.getElementById("resetPilotForm").addEventListener("click", resetPilotForm);
       document.getElementById("cancelPilotEdit").addEventListener("click", closePilotModal);
       document.getElementById("openPilotCreate").addEventListener("click", () => openPilotModal());
+      pilotEls.importContact.addEventListener("click", async () => {
+        try {
+          if (!navigator.contacts || !navigator.contacts.select) {
+            alert("Seleccion de contactos no compatible en este navegador.");
+            return;
+          }
+          const contacts = await navigator.contacts.select(["name", "tel"], { multiple: false });
+          if (!contacts || !contacts.length) return;
+          const c = contacts[0];
+          const cname = (c.name && c.name[0]) ? String(c.name[0]) : "";
+          const ctel = (c.tel && c.tel[0]) ? String(c.tel[0]) : "";
+          if (cname) {
+            pilotEls.name.value = cname;
+            if (!pilotEls.initials.value) {
+              const parts = cname.split(/\s+/).filter(Boolean);
+              const built = (parts.map(p => p[0]).join("") || cname.slice(0, 3)).toUpperCase();
+              pilotEls.initials.value = toInitials(built.padEnd(3, "X"));
+            }
+          }
+          if (ctel) pilotEls.phone.value = ctel;
+        } catch {}
+      });
       pilotEls.modal.addEventListener("click", (ev) => {
         if (ev.target === pilotEls.modal) closePilotModal();
       });
@@ -2632,7 +2684,8 @@
       };
       let selectedTrackId = null;
 
-      function openTrackModal(id) {
+      function openTrackModal(id, returnView = null) {
+        trackModalReturnView = returnView;
         if (id) {
           const t = getTrack(id);
           if (!t) return;
@@ -2652,6 +2705,10 @@
         trackEls.modal.classList.remove("show");
         resetTrackForm();
         renderTracks();
+        if (trackModalReturnView) {
+          go(trackModalReturnView);
+          trackModalReturnView = null;
+        }
       }
 
       function getTrackRuns(id) {
@@ -2905,16 +2962,16 @@
         renderOrderList();
       });
 
-      document.getElementById("quickNewPilot").addEventListener("click", () => { go("pilots"); openPilotModal(); });
-      document.getElementById("quickNewTrack").addEventListener("click", () => { go("tracks"); openTrackModal(); });
+      document.getElementById("quickNewPilot").addEventListener("click", () => { go("pilots"); openPilotModal(null, "quick"); });
+      document.getElementById("quickNewTrack").addEventListener("click", () => { go("tracks"); openTrackModal(null, "quick"); });
       document.getElementById("quickRefreshPilot").addEventListener("click", refreshPilotSelectors);
       document.getElementById("quickRefreshTrack").addEventListener("click", refreshTrackSelectors);
       quickPilot.addEventListener("change", updateSelectionInfo);
       quickTrack.addEventListener("change", updateSelectionInfo);
       createTrack.addEventListener("change", updateSelectionInfo);
       document.getElementById("quickToSettings").addEventListener("click", () => go("settings"));
-      document.getElementById("createNewPilot").addEventListener("click", () => { go("pilots"); openPilotModal(); });
-      document.getElementById("createNewTrack").addEventListener("click", () => { go("tracks"); openTrackModal(); });
+      document.getElementById("createNewPilot").addEventListener("click", () => { go("pilots"); openPilotModal(null, "create"); });
+      document.getElementById("createNewTrack").addEventListener("click", () => { go("tracks"); openTrackModal(null, "create"); });
       document.getElementById("createRefreshTrack").addEventListener("click", refreshTrackSelectors);
 
       const session = {
@@ -3173,6 +3230,7 @@
         } else {
           raceUI.mini.textContent = "Tanda completada";
         }
+        sendPilotWhatsappIfAvailable(session.turn);
         soundFinish();
         session.idx += 1;
         setTimeout(moveToNextTurn, 900);
@@ -3245,6 +3303,48 @@
         }
       }
 
+      function normalizePhoneForWhatsApp(phone) {
+        const clean = String(phone || "").replace(/[^\d+]/g, "");
+        if (!clean) return "";
+        if (clean.startsWith("+")) return clean.slice(1).replace(/\D/g, "");
+        return clean.replace(/\D/g, "");
+      }
+
+      function buildPilotTurnText(turn) {
+        const p = getPilot(turn.pilotId);
+        const tr = getTrack(session.trackId);
+        const laps = turn.laps || [];
+        const best = laps.length ? Math.min(...laps.map(l => l.totalMs)) : NaN;
+        const last = laps.length ? laps[laps.length - 1].totalMs : NaN;
+        const lines = [
+          "Resultado de ronda",
+          "Piloto: " + (p ? p.name : "--"),
+          "Track: " + (tr ? tr.name : "--"),
+          "Vueltas: " + laps.length,
+          "Mejor: " + (isFinite(best) ? fmt(best) : "--:--.---"),
+          "Ultima: " + (isFinite(last) ? fmt(last) : "--:--.---"),
+          "Falsas salidas: " + (turn.falseStarts || 0),
+          "Puntos: " + (turn.points || 0)
+        ];
+        return lines.join("\n");
+      }
+
+      function sendPilotWhatsappIfAvailable(turn) {
+        const p = getPilot(turn.pilotId);
+        const digits = normalizePhoneForWhatsApp(p && p.phone ? p.phone : "");
+        if (!digits) return;
+        const text = buildPilotTurnText(turn);
+        const url = "https://wa.me/" + digits + "?text=" + encodeURIComponent(text);
+        const w = window.open(url, "_blank");
+        if (!w) {
+          const a = document.createElement("a");
+          a.href = url;
+          a.target = "_blank";
+          a.rel = "noopener noreferrer";
+          a.click();
+        }
+      }
+
       function finishSession() {
         const turns = session.queue.map((q, i) => {
           const t = q.result || null;
@@ -3281,6 +3381,12 @@
           if (cur) cur.result = session.turn;
         }
         finishSession();
+      });
+
+      raceUI.sharePilotBtn.addEventListener("click", () => {
+        if (!session.turn) return;
+        const msg = buildPilotTurnText(session.turn);
+        shareText("Resultado piloto", msg);
       });
 
       function storeTurnInQueue() {
