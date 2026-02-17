@@ -137,6 +137,7 @@
     .title-wrap { min-width: 0; }
     .title { margin: 0; font-size: 15px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.8px; }
     .subtitle { margin: 0; font-size: 10px; color: #9dd8ea; text-transform: uppercase; }
+    .subtitle:empty { display: none; }
 
     main { padding: 12px; display: grid; gap: 12px; }
 
@@ -1304,8 +1305,8 @@
     <div class="header-left">
       <button class="back-btn" id="backBtn">Atras</button>
       <div class="title-wrap">
-        <h1 class="title" id="appTitle">Scalex Rally</h1>
-        <div class="subtitle" id="appSubtitle">Crono BLE sin camara</div>
+        <h1 class="title" id="appTitle">RaspaTimer</h1>
+        <div class="subtitle" id="appSubtitle"></div>
       </div>
     </div>
     <div class="header-tools">
@@ -1950,13 +1951,13 @@
         Object.keys(views).forEach(k => views[k].classList.toggle("active", k === viewName));
         backBtn.classList.toggle("show", viewName !== "home");
         const labels = {
-          home: ["Scalex Rally", "Crono BLE sin camara"],
-          quick: ["Rally rapido", "Vueltas ilimitadas"],
-          create: ["Crear Rally", "Orden, tandas y vueltas"],
-          pilots: ["Pilotos", "CRUD y estadisticas"],
-          tracks: ["Tracks", "CRUD y records"],
-          history: ["Historial", "Resultados guardados"],
-          settings: ["Settings", "BLE y perfiles"]
+          home: ["RaspaTimer", ""],
+          quick: ["RaspaTimer", ""],
+          create: ["RaspaTimer", ""],
+          pilots: ["RaspaTimer", ""],
+          tracks: ["RaspaTimer", ""],
+          history: ["RaspaTimer", ""],
+          settings: ["RaspaTimer", ""]
         };
         appTitle.textContent = labels[viewName][0];
         appSubtitle.textContent = labels[viewName][1];
@@ -3345,6 +3346,76 @@
         return lines.join("\n");
       }
 
+      async function buildPilotTurnCardFile(turn) {
+        const p = getPilot(turn.pilotId);
+        const tr = getTrack(session.trackId);
+        const laps = turn.laps || [];
+        const best = laps.length ? Math.min(...laps.map(l => l.totalMs)) : NaN;
+        const last = laps.length ? laps[laps.length - 1].totalMs : NaN;
+        const canvas = document.createElement("canvas");
+        canvas.width = 1080;
+        canvas.height = 1350;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return null;
+
+        const bg = ctx.createLinearGradient(0, 0, 1080, 1350);
+        bg.addColorStop(0, "#1a1730");
+        bg.addColorStop(1, "#0f1222");
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, 1080, 1350);
+
+        ctx.fillStyle = "rgba(255,255,255,0.06)";
+        ctx.fillRect(70, 80, 940, 1190);
+        ctx.strokeStyle = "rgba(190,170,250,0.4)";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(70, 80, 940, 1190);
+
+        ctx.fillStyle = "#ffb15a";
+        ctx.font = "700 46px 'Segoe UI'";
+        ctx.fillText("RaspaTimer - Resultado piloto", 110, 160);
+
+        ctx.fillStyle = "#f4eeff";
+        ctx.font = "800 72px 'Segoe UI'";
+        ctx.fillText(p ? p.name : "Piloto", 110, 290);
+
+        ctx.fillStyle = "#c9c1e3";
+        ctx.font = "500 36px 'Segoe UI'";
+        ctx.fillText("Track: " + (tr ? tr.name : "--"), 110, 360);
+
+        ctx.fillStyle = "#f4eeff";
+        ctx.font = "700 44px 'Segoe UI'";
+        ctx.fillText("Vueltas: " + laps.length, 110, 460);
+        ctx.fillText("Mejor: " + (isFinite(best) ? fmt(best) : "--:--.---"), 110, 540);
+        ctx.fillText("Ultima: " + (isFinite(last) ? fmt(last) : "--:--.---"), 110, 620);
+        ctx.fillText("Falsas salidas: " + (turn.falseStarts || 0), 110, 700);
+        ctx.fillText("Puntos: " + (turn.points || 0), 110, 780);
+
+        ctx.fillStyle = "#9d95be";
+        ctx.font = "500 28px 'Segoe UI'";
+        ctx.fillText(new Date().toLocaleString(), 110, 860);
+
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png", 0.95));
+        if (!blob) return null;
+        return new File([blob], "raspatimer-piloto.png", { type: "image/png" });
+      }
+
+      async function sharePilotRich(turn) {
+        const text = buildPilotTurnText(turn);
+        const file = await buildPilotTurnCardFile(turn);
+        if (file && navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+          try {
+            await navigator.share({ title: "Resultado piloto", text, files: [file] });
+            return;
+          } catch {}
+        }
+        await shareText("Resultado piloto", text);
+      }
+
+      function warnIfSensorMissing() {
+        if (bleState.connected) return true;
+        return confirm("No hay sensor BLE conectado. Quieres continuar igualmente?");
+      }
+
       function sendPilotWhatsappIfAvailable(turn) {
         const p = getPilot(turn.pilotId);
         const digits = normalizePhoneForWhatsApp(p && p.phone ? p.phone : "");
@@ -3406,8 +3477,13 @@
 
       raceUI.sharePilotBtn.addEventListener("click", () => {
         if (!session.turn) return;
-        const msg = buildPilotTurnText(session.turn);
-        shareText("Resultado piloto", msg);
+        const p = getPilot(session.turn.pilotId);
+        const digits = normalizePhoneForWhatsApp(p && p.phone ? p.phone : "");
+        if (digits) {
+          sendPilotWhatsappIfAvailable(session.turn);
+          return;
+        }
+        sharePilotRich(session.turn);
       });
 
       raceUI.sendPilotWhatsappBtn.addEventListener("click", () => {
@@ -3428,12 +3504,14 @@
         }
       }
 
-      document.getElementById("startQuick").addEventListener("click", () => {
+      document.getElementById("startQuick").addEventListener("click", async () => {
         const pilotId = quickPilot.value;
         const trackId = quickTrack.value;
         const penaltySec = Math.max(0, Number(document.getElementById("quickPenaltySec").value) || 0);
         if (!pilotId) return alert("Selecciona o crea un piloto");
         if (!trackId) return alert("Selecciona o crea un track");
+        if (!warnIfSensorMissing()) return;
+        await activateImmersiveMode();
         const profile = getActiveProfile();
         startSession({
           type: "quick",
@@ -3444,7 +3522,7 @@
         });
       });
 
-      document.getElementById("startCreatedRally").addEventListener("click", () => {
+      document.getElementById("startCreatedRally").addEventListener("click", async () => {
         const name = sanitizeName(document.getElementById("rallyName").value) || (getActiveProfile().defaults?.rallyName || "Rally Session");
         const trackId = createTrack.value;
         const lapsPerHeat = Math.max(1, Number(document.getElementById("lapsPerHeat").value) || 1);
@@ -3452,6 +3530,8 @@
         const penaltySec = Math.max(0, Number(document.getElementById("createPenaltySec").value) || 0);
         if (!trackId) return alert("Selecciona track");
         if (!orderState.length) return alert("Agrega pilotos al orden");
+        if (!warnIfSensorMissing()) return;
+        await activateImmersiveMode();
 
         const queue = [];
         for (let h = 1; h <= heatCount; h++) {
