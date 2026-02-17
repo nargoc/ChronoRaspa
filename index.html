@@ -1073,6 +1073,59 @@
       box-shadow: 0 16px 40px rgba(0, 0, 0, 0.38);
     }
 
+    .splash-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 140;
+      display: grid;
+      place-items: center;
+      gap: 14px;
+      background:
+        radial-gradient(420px 280px at 20% 12%, rgba(255, 148, 108, 0.2), transparent 72%),
+        radial-gradient(460px 300px at 84% 14%, rgba(122, 98, 255, 0.22), transparent 74%),
+        linear-gradient(180deg, #18152a, #0f1220);
+      transition: opacity 420ms ease, visibility 420ms ease;
+    }
+
+    .splash-screen.hide {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .splash-logo {
+      width: 124px;
+      height: 124px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(194, 181, 255, 0.3);
+      box-shadow: 0 18px 34px rgba(0, 0, 0, 0.38), 0 0 20px rgba(154, 136, 255, 0.2);
+      display: grid;
+      place-items: center;
+    }
+
+    .splash-logo-svg {
+      width: 86px;
+      height: 86px;
+      stroke: #f2edff;
+      fill: none;
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .splash-logo-svg .fishbone {
+      stroke: #ffb483;
+      stroke-width: 3;
+    }
+
+    .splash-title {
+      font-size: 30px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: #f4eeff;
+      text-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    }
+
     .semaphore-screen {
       position: fixed;
       inset: 0;
@@ -1427,6 +1480,19 @@
   </style>
 </head>
 <body>
+  <section class="splash-screen" id="splashScreen">
+    <div class="splash-logo" aria-hidden="true">
+      <svg viewBox="0 0 160 160" class="splash-logo-svg">
+        <rect x="12" y="12" width="136" height="136" rx="28"></rect>
+        <path d="M30 98h70l16-16h24l10 8v16h-16v22h-16v-22H40v22H24v-22h-8z"></path>
+        <circle cx="52" cy="124" r="12"></circle>
+        <circle cx="100" cy="124" r="12"></circle>
+        <path d="M26 48l18-8 10 4 10-4 10 4 10-4 10 4 10-4 10 4 10-4 16 7" class="fishbone"></path>
+      </svg>
+    </div>
+    <div class="splash-title">RaspaTimer</div>
+  </section>
+
   <header>
     <div class="header-left">
       <button class="back-btn" id="backBtn" title="Atras" aria-label="Atras"><svg class="back-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></button>
@@ -1448,23 +1514,23 @@
         <div class="menu-grid">
           <button class="menu-tile tile-quick" data-nav="quick">
             <img class="menu-photo" src="assets/home/quick.png" onerror="this.onerror=null;this.src='assets/home/quick.svg';" alt="Coche WRC" loading="lazy">
-            <div class="menu-caption"><b>Rally rapido</b><span>1 piloto, vueltas ilimitadas</span></div>
+            <div class="menu-caption"><b>Quick Rally</b><span>1 driver, unlimited laps</span></div>
           </button>
           <button class="menu-tile tile-create" data-nav="create">
             <img class="menu-photo" src="assets/home/create.png" onerror="this.onerror=null;this.src='assets/home/create.svg';" alt="Coches de rally en carrera" loading="lazy">
-            <div class="menu-caption"><b>Crear nuevo Rally</b><span>Orden, tandas y vueltas</span></div>
+            <div class="menu-caption"><b>Create Rally</b><span>Order, heats and laps</span></div>
           </button>
           <button class="menu-tile tile-pilots" data-nav="pilots">
             <img class="menu-photo" src="assets/home/pilots.png" onerror="this.onerror=null;this.src='assets/home/pilots.svg';" alt="Piloto de rally" loading="lazy">
-            <div class="menu-caption"><b>Pilotos</b><span>Alta, edicion, foto</span></div>
+            <div class="menu-caption"><b>Pilots</b><span>Create, edit, photo</span></div>
           </button>
           <button class="menu-tile tile-tracks" data-nav="tracks">
             <img class="menu-photo" src="assets/home/tracks.png" onerror="this.onerror=null;this.src='assets/home/tracks.svg';" alt="Tramo de Rally Finlandia" loading="lazy">
-            <div class="menu-caption"><b>Tracks</b><span>Circuitos y mejores tiempos</span></div>
+            <div class="menu-caption"><b>Tracks</b><span>Stages and best times</span></div>
           </button>
           <button class="menu-tile tile-history" data-nav="history">
             <img class="menu-photo" src="assets/home/history.png" onerror="this.onerror=null;this.src='assets/home/history.svg';" alt="Boxes de rally" loading="lazy">
-            <div class="menu-caption"><b>Historial</b><span>Rallies corridos y detalle</span></div>
+            <div class="menu-caption"><b>Historic</b><span>Past rallies and details</span></div>
           </button>
         </div>
       </div>
@@ -1472,75 +1538,75 @@
 
     <section class="view" id="view-quick">
       <div class="card">
-        <h2>Seleccion de salida</h2>
-        <label>Piloto</label>
+        <h2>Start Setup</h2>
+        <label>Pilot</label>
         <select id="quickPilot"></select>
-        <div class="selection-hint" id="quickPilotInfo">Piloto seleccionado: --</div>
+        <div class="selection-hint" id="quickPilotInfo">Selected pilot: --</div>
         <div class="grid-2">
-          <button id="quickNewPilot" class="ghost-btn">Crear piloto</button>
-          <button id="quickRefreshPilot" class="ghost-btn">Recargar</button>
+          <button id="quickNewPilot" class="ghost-btn">Create pilot</button>
+          <button id="quickRefreshPilot" class="ghost-btn">Refresh</button>
         </div>
 
         <label>Track</label>
         <select id="quickTrack"></select>
-        <div class="selection-hint" id="quickTrackInfo">Track seleccionado: --</div>
+        <div class="selection-hint" id="quickTrackInfo">Selected track: --</div>
         <div class="grid-2">
-          <button id="quickNewTrack" class="ghost-btn">Crear track</button>
-          <button id="quickRefreshTrack" class="ghost-btn">Recargar</button>
+          <button id="quickNewTrack" class="ghost-btn">Create track</button>
+          <button id="quickRefreshTrack" class="ghost-btn">Refresh</button>
         </div>
       </div>
 
       <div class="card">
-        <h2>Sesion</h2>
-        <p>Configura la penalizacion y arranca cuando este listo.</p>
+        <h2>Session</h2>
+        <p>Set penalty and start when ready.</p>
 
-        <label>Penalizacion salida falsa (seg)</label>
+        <label>False start penalty (sec)</label>
         <input id="quickPenaltySec" type="number" min="0" max="30" step="1" value="3">
 
         <div class="grid-2">
-          <button id="startQuick" class="primary">Empezar quick rally</button>
-          <button id="quickToSettings">Configurar BLE</button>
+          <button id="startQuick" class="primary">Start quick rally</button>
+          <button id="quickToSettings">BLE settings</button>
         </div>
       </div>
     </section>
 
     <section class="view" id="view-create">
       <div class="card">
-        <h2>Crear nuevo Rally</h2>
-        <label>Nombre</label>
-        <input id="rallyName" type="text" placeholder="Ej: Rally Casa Noche">
+        <h2>Create Rally</h2>
+        <label>Name</label>
+        <input id="rallyName" type="text" placeholder="Example: Night Rally">
 
         <label>Track</label>
         <select id="createTrack"></select>
-        <div class="selection-hint" id="createTrackInfo">Track seleccionado: --</div>
+        <div class="selection-hint" id="createTrackInfo">Selected track: --</div>
         <div class="grid-2">
-          <button id="createNewTrack">Crear track</button>
-          <button id="createRefreshTrack">Recargar</button>
+          <button id="createNewTrack">Create track</button>
+          <button id="createRefreshTrack">Refresh</button>
         </div>
 
-        <label>Vueltas por tanda</label>
+        <label>Laps per heat</label>
         <input id="lapsPerHeat" type="number" min="1" max="200" step="1" value="6">
 
-        <label>Numero de tandas</label>
+        <label>Number of heats</label>
         <input id="heatCount" type="number" min="1" max="20" step="1" value="1">
 
-        <label>Penalizacion salida falsa (seg)</label>
+        <label>False start penalty (sec)</label>
         <input id="createPenaltySec" type="number" min="0" max="30" step="1" value="3">
       </div>
 
       <div class="card">
-        <h3>Orden de pilotos</h3>
-        <label>Anadir piloto</label>
+        <h3>Pilot order</h3>
+        <label>Add pilot</label>
         <select id="createPilotSelect"></select>
         <div class="grid-2">
-          <button id="addPilotOrder" class="primary">Anadir al orden</button>
-          <button id="createNewPilot">Crear piloto</button>
+          <button id="addPilotOrder" class="primary">Add to order</button>
+          <button id="createNewPilot">Create pilot</button>
         </div>
         <div class="list ordered-list" id="pilotOrderList"></div>
-        <div class="hint">Usa subir/bajar para ordenar la salida.</div>
+        <div class="hint">Use up/down to reorder starts.</div>
         <div class="grid-2">
-          <button id="startCreatedRally" class="primary">Iniciar rally</button>
-          <button id="clearPilotOrder" class="danger">Limpiar orden</button>
+          <button id="startCreatedRally" class="primary">Start rally</button>
+          <button id="clearPilotOrder" class="danger">Clear order</button>
         </div>
       </div>
     </section>
@@ -1549,15 +1615,15 @@
       <div class="card entity-view">
         <div class="entity-col">
           <div class="entity-head">
-            <h3>Listado pilotos</h3>
-            <button id="openPilotCreate" class="primary">Anadir nuevo</button>
+            <h3>Pilots list</h3>
+            <button id="openPilotCreate" class="primary">Add new</button>
           </div>
-          <div class="hint">Toca un piloto para ver historial de rallies y tiempos.</div>
+          <div class="hint">Tap a pilot to see rallies and lap times.</div>
           <div class="list" id="pilotList"></div>
         </div>
         <div class="entity-col">
-          <h3>Detalle piloto</h3>
-          <div id="pilotDetail" class="hint">Selecciona un piloto para ver sus rallies, tramos y tiempos.</div>
+          <h3>Pilot detail</h3>
+          <div id="pilotDetail" class="hint">Select a pilot to view rallies, stages and times.</div>
         </div>
       </div>
     </section>
@@ -1566,71 +1632,77 @@
       <div class="card entity-view">
         <div class="entity-col">
           <div class="entity-head">
-            <h3>Listado tracks</h3>
-            <button id="openTrackCreate" class="primary">Anadir nuevo</button>
+            <h3>Tracks list</h3>
+            <button id="openTrackCreate" class="primary">Add new</button>
           </div>
-          <div class="hint">Toca un track para ver detalle y mejores tiempos.</div>
+          <div class="hint">Tap a track to see detail and best times.</div>
           <div class="list" id="trackList"></div>
         </div>
         <div class="entity-col">
-          <h3>Detalle track</h3>
-          <div id="trackDetail" class="hint">Selecciona un track para ver rallies y tiempos por piloto.</div>
+          <h3>Track detail</h3>
+          <div id="trackDetail" class="hint">Select a track to view rallies and per-pilot times.</div>
         </div>
       </div>
     </section>
 
     <section class="view" id="view-history">
       <div class="card">
-        <h2>Historial de rallies</h2>
+        <h2>Rally history</h2>
         <div class="grid-2">
-          <button id="shareLastHistory" class="primary">Compartir ultimo</button>
-          <button id="clearHistory" class="danger">Borrar historial</button>
+          <button id="shareLastHistory" class="primary">Share latest</button>
+          <button id="clearHistory" class="danger">Clear history</button>
         </div>
-        <div class="selection-hint" id="historySelectedHint">Rally seleccionado: ninguno</div>
+        <div class="selection-hint" id="historySelectedHint">Selected rally: none</div>
         <div class="list" id="historyList"></div>
       </div>
 
       <div class="card">
-        <h3>Detalle</h3>
-        <div id="historyDetail" class="hint">Selecciona un rally para ver detalle.</div>
+        <h3>Detail</h3>
+        <div id="historyDetail" class="hint">Select a rally to view detail.</div>
       </div>
     </section>
 
     <section class="view" id="view-settings">
       <div class="card">
-        <h2>Perfiles</h2>
-        <label>Perfil activo</label>
+        <h2>Profiles</h2>
+        <label>Active profile</label>
         <select id="profileSelect"></select>
-        <label>Nuevo perfil</label>
-        <input id="newProfileName" type="text" placeholder="Ej: Club Sabado">
+        <label>New profile</label>
+        <input id="newProfileName" type="text" placeholder="Example: Saturday Club">
         <div class="grid-2">
-          <button id="createProfile" class="primary">Crear perfil</button>
-          <button id="deleteProfile" class="danger">Borrar perfil</button>
+          <button id="createProfile" class="primary">Create profile</button>
+          <button id="deleteProfile" class="danger">Delete profile</button>
         </div>
+
+        <label>Language</label>
+        <select id="langSelect">
+          <option value="en">English</option>
+          <option value="es">Espanol</option>
+        </select>
       </div>
 
       <div class="card">
         <h2>BLE</h2>
         <div class="grid-2">
-          <button id="bleConnect" class="primary">Conectar BLE</button>
-          <button id="bleDisconnect">Desconectar</button>
+          <button id="bleConnect" class="primary">Connect BLE</button>
+          <button id="bleDisconnect">Disconnect</button>
         </div>
-        <div class="hint" id="bleStatusText">Estado: desconectado</div>
+        <div class="hint" id="bleStatusText">Status: disconnected</div>
 
         <div class="grid-2">
-          <button id="refreshBleDevices">Sensores guardados</button>
-          <div class="hint" id="bleRememberedText">Ultimo: --</div>
+          <button id="refreshBleDevices">Known sensors</button>
+          <div class="hint" id="bleRememberedText">Last: --</div>
         </div>
         <div class="list" id="bleKnownDevices"></div>
 
         <div class="grid-2">
-          <button id="enableImmersive" class="primary">Pantalla completa</button>
-          <button id="enableWakeLock">Mantener pantalla activa</button>
+          <button id="enableImmersive" class="primary">Fullscreen</button>
+          <button id="enableWakeLock">Keep screen awake</button>
         </div>
-        <div class="hint" id="immersiveStatusText">Modo inmersivo: pendiente</div>
+        <div class="hint" id="immersiveStatusText">Immersive mode: pending</div>
 
         <details class="group-block">
-          <summary class="group-summary">Parametros Arduino</summary>
+          <summary class="group-summary">Arduino settings</summary>
           <div class="group-body">
             <label>Threshold (thr)</label>
             <input id="bleThr" type="range" min="0" max="1023" step="1" value="450">
@@ -1667,101 +1739,101 @@
             <div class="hint">Valor: <b id="bleSampleVal">15</b></div>
 
             <div class="grid-3">
-              <button id="bleApply" class="primary">Aplicar al Arduino</button>
-              <button id="bleGet">Leer Arduino</button>
-              <button id="saveBleProfile" class="success">Guardar en perfil</button>
+              <button id="bleApply" class="primary">Apply to Arduino</button>
+              <button id="bleGet">Read Arduino</button>
+              <button id="saveBleProfile" class="success">Save to profile</button>
             </div>
           </div>
         </details>
       </div>
 
       <div class="card">
-        <h2>Defaults app</h2>
-        <label>Penalizacion salida falsa (seg)</label>
+        <h2>App defaults</h2>
+        <label>False start penalty (sec)</label>
         <input id="defaultPenalty" type="number" min="0" max="30" step="1" value="3">
-        <label>Nombre por defecto rally</label>
+        <label>Default rally name</label>
         <input id="defaultRallyName" type="text" value="Rally Session">
-        <button id="saveDefaults" class="primary">Guardar defaults</button>
+        <button id="saveDefaults" class="primary">Save defaults</button>
       </div>
     </section>
   </main>
 
   <section class="modal-backdrop" id="pilotModal">
     <div class="modal-card">
-      <h3 id="pilotModalTitle">Nuevo piloto</h3>
+      <h3 id="pilotModalTitle">New pilot</h3>
       <input type="hidden" id="pilotEditId">
       <div class="grid-2">
-        <button id="importPilotContact" class="mini-btn">Importar contacto</button>
-        <div class="hint">Rellena nombre y telefono</div>
+        <button id="importPilotContact" class="mini-btn">Import contact</button>
+        <div class="hint">Fill name and phone</div>
       </div>
-      <label>Nombre</label>
-      <input id="pilotName" type="text" placeholder="Nombre piloto">
-      <label>Iniciales (3)</label>
+      <label>Name</label>
+      <input id="pilotName" type="text" placeholder="Pilot name">
+      <label>Initials (3)</label>
       <input id="pilotInitials" type="text" maxlength="3" placeholder="ABC">
-      <label>Telefono (opcional)</label>
-      <input id="pilotPhone" type="tel" placeholder="Ej: +34600111222">
-      <label>Foto</label>
+      <label>Phone (optional)</label>
+      <input id="pilotPhone" type="tel" placeholder="Example: +34600111222">
+      <label>Photo</label>
       <input id="pilotPhoto" type="file" accept="image/*" capture="environment">
       <div class="grid-3">
-        <button id="savePilot" class="primary">Guardar</button>
-        <button id="resetPilotForm">Limpiar</button>
-        <button id="cancelPilotEdit" class="danger">Cerrar</button>
+        <button id="savePilot" class="primary">Save</button>
+        <button id="resetPilotForm">Clear</button>
+        <button id="cancelPilotEdit" class="danger">Close</button>
       </div>
     </div>
   </section>
 
   <section class="modal-backdrop" id="trackModal">
     <div class="modal-card">
-      <h3 id="trackModalTitle">Nuevo track</h3>
+      <h3 id="trackModalTitle">New track</h3>
       <input type="hidden" id="trackEditId">
-      <label>Nombre</label>
-      <input id="trackName" type="text" placeholder="Nombre circuito">
-      <label>Distancia opcional (metros)</label>
-      <input id="trackDistance" type="number" min="1" step="1" placeholder="Opcional">
-      <label>Foto</label>
+      <label>Name</label>
+      <input id="trackName" type="text" placeholder="Track name">
+      <label>Optional distance (meters)</label>
+      <input id="trackDistance" type="number" min="1" step="1" placeholder="Optional">
+      <label>Photo</label>
       <input id="trackPhoto" type="file" accept="image/*" capture="environment">
       <div class="grid-3">
-        <button id="saveTrack" class="primary">Guardar</button>
-        <button id="resetTrackForm">Limpiar</button>
-        <button id="cancelTrackEdit" class="danger">Cerrar</button>
+        <button id="saveTrack" class="primary">Save</button>
+        <button id="resetTrackForm">Clear</button>
+        <button id="cancelTrackEdit" class="danger">Close</button>
       </div>
     </div>
   </section>
 
   <section class="race-screen" id="raceScreen">
     <div class="race-head">
-      <div class="badge" id="racePilotBadge">Piloto: --</div>
+      <div class="badge" id="racePilotBadge">Pilot: --</div>
       <div class="badge" id="raceTrackBadge">Track: --</div>
-      <div class="badge" id="raceLapBadge">Vuelta: 0</div>
-      <div class="badge" id="raceModeBadge">Modo: --</div>
-      <button id="finishRoundBtn" class="mini-btn danger race-end-btn">Finalizar</button>
+      <div class="badge" id="raceLapBadge">Lap: 0</div>
+      <div class="badge" id="raceModeBadge">Mode: --</div>
+      <button id="finishRoundBtn" class="mini-btn danger race-end-btn">Finish</button>
     </div>
 
-    <div class="touch-start" id="touchStartBox">Toca para iniciar salida</div>
+    <div class="touch-start" id="touchStartBox">Tap to start</div>
 
     <div class="race-main" id="raceMain">
       <div class="race-top">
-        <div class="lap-count" id="raceLapBig">Vuelta 0</div>
+        <div class="lap-count" id="raceLapBig">Lap 0</div>
         <div class="big-time" id="raceBigTime">00:00.000</div>
       </div>
 
       <div class="race-bottom">
         <div class="race-left" id="raceLiveGrid">
-          <div class="stat best" id="raceBestStat"><div class="k">Mejor vuelta</div><div class="v" id="raceBestLap">--:--.---</div></div>
-          <div class="stat last" id="raceLastStat"><div class="k">Ultima vuelta</div><div class="v" id="raceLastLap">--:--.---</div></div>
+          <div class="stat best" id="raceBestStat"><div class="k">Best lap</div><div class="v" id="raceBestLap">--:--.---</div></div>
+          <div class="stat last" id="raceLastStat"><div class="k">Last lap</div><div class="v" id="raceLastLap">--:--.---</div></div>
 
-          <div class="progress" id="raceProgress">Progresion: --</div>
-          <div class="hint" id="raceMiniMsg">Esperando toque para semaforo...</div>
-          <button id="sendPilotWhatsappBtn" class="mini-btn primary hide">Enviar WhatsApp piloto</button>
-          <button id="sharePilotBtn" class="mini-btn">Compartir piloto</button>
+          <div class="progress" id="raceProgress">Progress: --</div>
+          <div class="hint" id="raceMiniMsg">Waiting for tap to launch lights...</div>
+          <button id="sendPilotWhatsappBtn" class="mini-btn primary hide">Send pilot WhatsApp</button>
+          <button id="sharePilotBtn" class="mini-btn">Share pilot</button>
         </div>
 
         <div class="race-right">
           <div class="card" id="raceLapsCard">
-            <h3>Tiempos</h3>
+            <h3>Times</h3>
             <table>
               <thead>
-                <tr><th>#</th><th class="right">Tiempo</th><th class="right">Delta</th><th>Estado</th></tr>
+                <tr><th>#</th><th class="right">Time</th><th class="right">Delta</th><th>Status</th></tr>
               </thead>
               <tbody id="raceLapTable"></tbody>
             </table>
@@ -1774,14 +1846,14 @@
 
   <section class="semaphore-screen" id="semaphoreScreen">
     <div class="sema-body">
-      <div class="sema-title">SALIDA</div>
+      <div class="sema-title">START</div>
       <div class="light-wall">
         <div class="light red" data-light="L1"></div>
         <div class="light red" data-light="L2"></div>
         <div class="light amber" data-light="L3"></div>
         <div class="light green" data-light="L4"></div>
       </div>
-      <div class="sema-msg" id="semaMsg">Preparado...</div>
+      <div class="sema-msg" id="semaMsg">Ready...</div>
     </div>
   </section>
 
@@ -1872,7 +1944,13 @@
       const quickTrackInfo = document.getElementById("quickTrackInfo");
       const createTrackInfo = document.getElementById("createTrackInfo");
       const historySelectedHint = document.getElementById("historySelectedHint");
+      const langSelect = document.getElementById("langSelect");
       let pendingPilotWhatsappUrl = "";
+
+      function getLang() {
+        const p = getActiveProfile();
+        return p && p.lang ? p.lang : "en";
+      }
 
       function uid() {
         return Math.random().toString(16).slice(2) + Date.now().toString(16);
@@ -2026,7 +2104,7 @@
           const profile = getActiveProfile();
           const devices = await navigator.bluetooth.getDevices();
           if (!devices.length) {
-            bleKnownDevicesEl.innerHTML = '<div class="hint">No hay sensores BLE autorizados aun.</div>';
+            bleKnownDevicesEl.innerHTML = '<div class="hint">No authorized BLE sensors yet.</div>';
             return;
           }
           devices.forEach(d => {
@@ -2059,9 +2137,9 @@
         const qp = getPilot(document.getElementById("quickPilot").value);
         const qt = getTrack(document.getElementById("quickTrack").value);
         const ct = getTrack(document.getElementById("createTrack").value);
-        quickPilotInfo.textContent = "Piloto seleccionado: " + (qp ? (qp.name + " (" + qp.initials + ")") : "--");
-        quickTrackInfo.textContent = "Track seleccionado: " + (qt ? qt.name : "--");
-        createTrackInfo.textContent = "Track seleccionado: " + (ct ? ct.name : "--");
+        quickPilotInfo.textContent = "Selected pilot: " + (qp ? (qp.name + " (" + qp.initials + ")") : "--");
+        quickTrackInfo.textContent = "Selected track: " + (qt ? qt.name : "--");
+        createTrackInfo.textContent = "Selected track: " + (ct ? ct.name : "--");
       }
 
       async function fileToDataUrl(file) {
@@ -2109,15 +2187,26 @@
         currentView = viewName;
         Object.keys(views).forEach(k => views[k].classList.toggle("active", k === viewName));
         backBtn.classList.toggle("show", viewName !== "home");
-        const labels = {
-          home: ["RaspaTimer", ""],
-          quick: ["RaspaTimer", ""],
-          create: ["RaspaTimer", ""],
-          pilots: ["RaspaTimer", ""],
-          tracks: ["RaspaTimer", ""],
-          history: ["RaspaTimer", ""],
-          settings: ["RaspaTimer", ""]
+        const lang = getLang();
+        const labelsEn = {
+          home: ["Home", ""],
+          quick: ["Quick Rally", ""],
+          create: ["Create Rally", ""],
+          pilots: ["Pilots", ""],
+          tracks: ["Tracks", ""],
+          history: ["Historic", ""],
+          settings: ["Settings", ""]
         };
+        const labelsEs = {
+          home: ["Inicio", ""],
+          quick: ["Rally Rapido", ""],
+          create: ["Crear Rally", ""],
+          pilots: ["Pilotos", ""],
+          tracks: ["Tracks", ""],
+          history: ["Historico", ""],
+          settings: ["Ajustes", ""]
+        };
+        const labels = lang === "es" ? labelsEs : labelsEn;
         appTitle.textContent = labels[viewName][0];
         appSubtitle.textContent = labels[viewName][1];
       }
@@ -2429,7 +2518,7 @@
       async function connectBleDevice(device) {
         bleState.device = device;
         device.addEventListener("gattserverdisconnected", () => {
-          setBleUi(false, "BLE desconectado");
+          setBleUi(false, "BLE disconnected");
           bleState.server = null;
           bleState.rxChar = null;
           bleState.txChar = null;
@@ -2448,7 +2537,7 @@
             onBleLine(line);
           }
         });
-        setBleUi(true, "BLE conectado");
+        setBleUi(true, "BLE connected");
         saveLastBleDevice(device);
         renderBleKnownDevices();
         await bleSend("GET\n");
@@ -2456,7 +2545,7 @@
 
       async function connectBle() {
         if (!navigator.bluetooth) {
-          alert("Web Bluetooth no disponible en este navegador.");
+          alert("Web Bluetooth is not available in this browser.");
           return;
         }
         const device = await navigator.bluetooth.requestDevice({
@@ -2496,7 +2585,7 @@
             bleState.device.gatt.disconnect();
           }
         } catch {}
-        setBleUi(false, "BLE desconectado");
+        setBleUi(false, "BLE disconnected");
       }
 
       async function applyBleToArduino() {
@@ -2538,9 +2627,19 @@
         applyBleToForm(p.bleConfig || {});
         document.getElementById("defaultPenalty").value = String(p.defaults?.penaltySec ?? 3);
         document.getElementById("defaultRallyName").value = String(p.defaults?.rallyName ?? "Rally Session");
+        langSelect.value = p.lang || "en";
         syncQuickDefaults();
         renderBleRemembered();
         renderBleKnownDevices();
+        applyLanguage(langSelect.value);
+      }
+
+      function applyLanguage(lang) {
+        const profile = getActiveProfile();
+        profile.lang = lang;
+        saveStore(false);
+        document.documentElement.lang = lang;
+        go(currentView);
       }
 
       function syncQuickDefaults() {
@@ -2581,6 +2680,10 @@
         store.activeProfileId = profileSelect.value;
         saveStore();
         loadProfileToUi();
+      });
+
+      langSelect.addEventListener("change", () => {
+        applyLanguage(langSelect.value);
       });
 
       ["thr", "hyst", "debounce", "holdoff", "minlap", "alpha", "sample"].forEach(k => {
@@ -2645,7 +2748,7 @@
           pilotEls.modalTitle.textContent = "Editar piloto";
         } else {
           resetPilotForm();
-          pilotEls.modalTitle.textContent = "Nuevo piloto";
+          pilotEls.modalTitle.textContent = "New pilot";
         }
         pilotEls.modal.classList.add("show");
       }
@@ -2720,7 +2823,7 @@
       function renderPilotDetail(id) {
         const pilot = getPilot(id);
         if (!pilot) {
-          pilotEls.detail.innerHTML = "Selecciona un piloto para ver sus rallies, tramos y tiempos.";
+          pilotEls.detail.innerHTML = "Select a pilot to view rallies, stages and times.";
           return;
         }
         const runs = getPilotRuns(id);
@@ -2825,8 +2928,8 @@
       function renderPilots() {
         pilotEls.list.innerHTML = "";
         if (!store.pilots.length) {
-          pilotEls.list.innerHTML = '<div class="hint">No hay pilotos aun.</div>';
-          pilotEls.detail.innerHTML = "Selecciona un piloto para ver sus rallies, tramos y tiempos.";
+          pilotEls.list.innerHTML = '<div class="hint">No pilots yet.</div>';
+          pilotEls.detail.innerHTML = "Select a pilot to view rallies, stages and times.";
           return;
         }
         if (!selectedPilotId || !store.pilots.some(p => p.id === selectedPilotId)) selectedPilotId = store.pilots[0].id;
@@ -2901,7 +3004,7 @@
           trackEls.modalTitle.textContent = "Editar track";
         } else {
           resetTrackForm();
-          trackEls.modalTitle.textContent = "Nuevo track";
+          trackEls.modalTitle.textContent = "New track";
         }
         trackEls.modal.classList.add("show");
       }
@@ -2948,7 +3051,7 @@
       function renderTrackDetail(id) {
         const t = getTrack(id);
         if (!t) {
-          trackEls.detail.innerHTML = "Selecciona un track para ver rallies y tiempos por piloto.";
+          trackEls.detail.innerHTML = "Select a track to view rallies and per-pilot times.";
           return;
         }
         const runs = getTrackRuns(id);
@@ -3057,8 +3160,8 @@
       function renderTracks() {
         trackEls.list.innerHTML = "";
         if (!store.tracks.length) {
-          trackEls.list.innerHTML = '<div class="hint">No hay tracks aun.</div>';
-          trackEls.detail.innerHTML = "Selecciona un track para ver rallies y tiempos por piloto.";
+          trackEls.list.innerHTML = '<div class="hint">No tracks yet.</div>';
+          trackEls.detail.innerHTML = "Select a track to view rallies and per-pilot times.";
           return;
         }
         if (!selectedTrackId || !store.tracks.some(t => t.id === selectedTrackId)) selectedTrackId = store.tracks[0].id;
@@ -3127,7 +3230,7 @@
       function renderOrderList() {
         orderList.innerHTML = "";
         if (!orderState.length) {
-          orderList.innerHTML = '<div class="hint">No hay pilotos en la salida.</div>';
+          orderList.innerHTML = '<div class="hint">No pilots in start order yet.</div>';
           return;
         }
         orderState.forEach((id, idx) => {
@@ -3312,7 +3415,7 @@
         raceUI.touchBox.classList.add("hide");
         showOnlyNextPilot(false);
         semaphoreScreen.classList.add("show");
-        raceUI.mini.textContent = "Semaforo en cuenta atras...";
+        raceUI.mini.textContent = "Starting lights countdown...";
         resetSemaphoreLights();
         semaMsg.textContent = "Preparado";
 
@@ -3363,7 +3466,7 @@
         showOnlyNextPilot(true);
         raceUI.touchBox.classList.remove("hide");
         renderNextPilotScreen();
-        raceUI.mini.textContent = "Esperando toque para semaforo";
+        raceUI.mini.textContent = "Waiting for tap to start lights";
         session.status = "await_touch";
       }
 
@@ -3422,7 +3525,7 @@
           raceUI.mini.textContent = "LAST LAP";
           soundLastLap();
         } else {
-          raceUI.mini.textContent = "Paso en meta";
+          raceUI.mini.textContent = "Line pass";
         }
 
         refreshRaceUi();
@@ -3437,9 +3540,9 @@
         storeTurnInQueue();
         session.turn.completed = true;
         if (manual) {
-          raceUI.mini.textContent = "Ronda finalizada manualmente";
+          raceUI.mini.textContent = "Round finished manually";
         } else {
-          raceUI.mini.textContent = "Tanda completada";
+          raceUI.mini.textContent = "Heat completed";
         }
         sendPilotWhatsappIfAvailable(session.turn);
         soundFinish();
@@ -3788,7 +3891,7 @@
 
       function warnIfSensorMissing() {
         if (bleState.connected) return true;
-        return confirm("No hay sensor BLE conectado. Quieres continuar igualmente?");
+        return confirm("No BLE sensor is connected. Do you want to continue anyway?");
       }
 
       function sendPilotWhatsappIfAvailable(turn) {
@@ -3877,8 +3980,8 @@
         const pilotId = quickPilot.value;
         const trackId = quickTrack.value;
         const penaltySec = Math.max(0, Number(document.getElementById("quickPenaltySec").value) || 0);
-        if (!pilotId) return alert("Selecciona o crea un piloto");
-        if (!trackId) return alert("Selecciona o crea un track");
+        if (!pilotId) return alert("Select or create a pilot");
+        if (!trackId) return alert("Select or create a track");
         await tryAutoConnectBle();
         if (!warnIfSensorMissing()) return;
         await activateImmersiveMode();
@@ -3898,7 +4001,7 @@
         const lapsPerHeat = Math.max(1, Number(document.getElementById("lapsPerHeat").value) || 1);
         const heatCount = Math.max(1, Number(document.getElementById("heatCount").value) || 1);
         const penaltySec = Math.max(0, Number(document.getElementById("createPenaltySec").value) || 0);
-        if (!trackId) return alert("Selecciona track");
+        if (!trackId) return alert("Select a track");
         if (!orderState.length) return alert("Agrega pilotos al orden");
         await tryAutoConnectBle();
         if (!warnIfSensorMissing()) return;
@@ -4007,8 +4110,8 @@
       function renderHistory() {
         historyList.innerHTML = "";
         if (!store.rallies.length) {
-          historyList.innerHTML = '<div class="hint">Aun no hay rallies guardados.</div>';
-          historyDetail.textContent = "Selecciona un rally para ver detalle.";
+          historyList.innerHTML = '<div class="hint">No saved rallies yet.</div>';
+          historyDetail.textContent = "Select a rally to view details.";
           historySelectedHint.textContent = "Rally seleccionado: ninguno";
           selectedHistoryId = null;
           return;
@@ -4048,16 +4151,19 @@
 
       document.getElementById("shareLastHistory").addEventListener("click", async () => {
         const last = store.rallies[0];
-        if (!last) return alert("No hay resultados");
+        if (!last) return alert("No results yet");
         await shareRallyRich(last, "Ultimo rally");
       });
 
-      setBleUi(false, "BLE desconectado");
+      setBleUi(false, "BLE disconnected");
       updateImmersiveStatus();
       updateInstallButton();
       setupInstallPrompt();
       setupServiceWorker();
       tryAutoConnectBle();
+
+      const splashScreen = document.getElementById("splashScreen");
+      setTimeout(() => splashScreen.classList.add("hide"), 1200);
 
       renderProfiles();
       loadProfileToUi();
