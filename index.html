@@ -3429,6 +3429,113 @@
         return lines.join("\n");
       }
 
+      async function buildRallyCardFile(rally) {
+        const track = getTrack(rally.trackId);
+        const bestRanking = Array.isArray(rally.summary?.bestRanking) ? rally.summary.bestRanking.slice(0, 5) : [];
+        const pointsRanking = Array.isArray(rally.summary?.pointsRanking) ? rally.summary.pointsRanking.slice(0, 5) : [];
+        const bestGlobal = bestRanking.length ? bestRanking[0] : null;
+        const accent = accentFromTrackName(track ? track.name : "track");
+
+        const canvas = document.createElement("canvas");
+        canvas.width = 1080;
+        canvas.height = 1350;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return null;
+
+        const bg = ctx.createLinearGradient(0, 0, 1080, 1350);
+        bg.addColorStop(0, "#1c1833");
+        bg.addColorStop(1, "#0e1221");
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, 1080, 1350);
+
+        const glow = ctx.createRadialGradient(190, 170, 10, 190, 170, 560);
+        glow.addColorStop(0, "rgba(255, 150, 122, 0.22)");
+        glow.addColorStop(1, "rgba(255, 150, 122, 0)");
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, 1080, 1350);
+
+        ctx.fillStyle = "rgba(255,255,255,0.06)";
+        ctx.fillRect(70, 80, 940, 1190);
+        ctx.strokeStyle = "rgba(205,190,255,0.42)";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(70, 80, 940, 1190);
+        ctx.fillStyle = accent;
+        ctx.fillRect(70, 80, 940, 12);
+
+        ctx.fillStyle = "#ffb15a";
+        ctx.font = "700 42px 'Segoe UI'";
+        ctx.fillText("RaspaTimer - Resultado rally", 110, 158);
+
+        ctx.fillStyle = "#f4eeff";
+        ctx.font = "800 58px 'Segoe UI'";
+        ctx.fillText(rally.name || "Rally", 110, 250);
+
+        ctx.fillStyle = "#c9c1e3";
+        ctx.font = "500 32px 'Segoe UI'";
+        ctx.fillText("Track: " + (track ? track.name : "--"), 110, 308);
+        ctx.fillText("Tipo: " + String(rally.type || "").toUpperCase(), 110, 352);
+        ctx.fillText("Fecha: " + new Date(rally.createdAt).toLocaleString(), 110, 396);
+        ctx.fillText("Turnos: " + ((rally.turns || []).length), 110, 440);
+
+        if (bestGlobal) {
+          const p = getPilot(bestGlobal.pilotId);
+          ctx.fillStyle = "#f4eeff";
+          ctx.font = "700 34px 'Segoe UI'";
+          ctx.fillText("Best global: " + fmt(bestGlobal.value), 110, 500);
+          ctx.fillStyle = "#ffcfb0";
+          ctx.font = "600 30px 'Segoe UI'";
+          ctx.fillText("Piloto: " + (p ? p.name : "--"), 110, 540);
+        }
+
+        const drawRankBlock = (title, rows, startY, isTime) => {
+          ctx.fillStyle = "#ffb15a";
+          ctx.font = "700 32px 'Segoe UI'";
+          ctx.fillText(title, 110, startY);
+          let y = startY + 48;
+          rows.forEach(r => {
+            const p = getPilot(r.pilotId);
+            ctx.fillStyle = "#f0ecff";
+            ctx.font = "600 28px 'Segoe UI'";
+            ctx.fillText(r.pos + ". " + (p ? p.name : "Piloto"), 122, y);
+            ctx.fillStyle = "#ffd3b9";
+            ctx.font = "700 28px 'Segoe UI'";
+            const rightVal = isTime ? fmt(r.value) : (r.value + " pts");
+            const w = ctx.measureText(rightVal).width;
+            ctx.fillText(rightVal, 980 - w, y);
+            y += 44;
+          });
+        };
+
+        drawRankBlock("Ranking mejor vuelta", bestRanking, 640, true);
+        drawRankBlock("Ranking puntos", pointsRanking, 940, false);
+
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png", 0.95));
+        if (!blob) return null;
+        return new File([blob], "raspatimer-rally.png", { type: "image/png" });
+      }
+
+      async function shareRallyRich(rally, title = "Resultado rally") {
+        const text = buildShareText(rally);
+        const file = await buildRallyCardFile(rally);
+        if (file && navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+          try {
+            await navigator.share({ title, text, files: [file] });
+            return;
+          } catch {}
+        }
+        if (file) {
+          const url = URL.createObjectURL(file);
+          window.open(url, "_blank");
+          setTimeout(() => URL.revokeObjectURL(url), 15000);
+        }
+        try {
+          await navigator.clipboard.writeText(text);
+          alert("Se abrio la tarjeta visual del rally. Texto copiado para compartir.");
+        } catch {
+          alert(text);
+        }
+      }
+
       async function shareText(title, text) {
         if (navigator.share) {
           try {
@@ -3837,9 +3944,9 @@
             ev.stopPropagation();
             selectHistoryRally(r.id);
           });
-          item.querySelector('[data-act="share"]').addEventListener("click", (ev) => {
+          item.querySelector('[data-act="share"]').addEventListener("click", async (ev) => {
             ev.stopPropagation();
-            shareText("Resultado rally", buildShareText(r));
+            await shareRallyRich(r, "Resultado rally");
           });
           historyList.appendChild(item);
         });
@@ -3857,10 +3964,10 @@
         renderTracks();
       });
 
-      document.getElementById("shareLastHistory").addEventListener("click", () => {
+      document.getElementById("shareLastHistory").addEventListener("click", async () => {
         const last = store.rallies[0];
         if (!last) return alert("No hay resultados");
-        shareText("Ultimo rally", buildShareText(last));
+        await shareRallyRich(last, "Ultimo rally");
       });
 
       setBleUi(false, "BLE desconectado");
