@@ -350,6 +350,26 @@
     .meta b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .meta small { color: var(--muted); font-size: 12px; }
     .actions { display: flex; gap: 6px; }
+    .actions button {
+      width: auto;
+      min-width: 0;
+      flex: 0 0 auto;
+    }
+
+    #historyList .item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: start;
+      gap: 10px;
+    }
+
+    #historyList .meta b,
+    #historyList .meta small {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: initial;
+      word-break: break-word;
+    }
 
     .chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
     .chip {
