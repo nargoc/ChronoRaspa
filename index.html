@@ -1125,6 +1125,14 @@
       opacity: 1;
     }
 
+    .semaphore-screen.all-green .light.on {
+      background:
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.06) 0 4px, rgba(0, 0, 0, 0.03) 4px 8px),
+        linear-gradient(180deg, #76f6ab, #1f9e52);
+      box-shadow: inset 0 0 24px rgba(255, 255, 255, 0.12), 0 0 24px rgba(67, 235, 132, 0.52);
+      border-color: rgba(143, 255, 191, 0.85);
+    }
+
     .sema-msg {
       text-align: center;
       font-size: 13px;
@@ -3116,6 +3124,7 @@
       }
 
       function resetSemaphoreLights() {
+        semaphoreScreen.classList.remove("all-green");
         setLight("L1", false);
         setLight("L2", false);
         setLight("L3", false);
@@ -3238,9 +3247,10 @@
         setTimeout(() => { setLight("L2", true); semaMsg.textContent = "2"; soundCount(); }, 1200);
         setTimeout(() => { setLight("L3", true); semaMsg.textContent = "1"; soundCount(); }, 2200);
         setTimeout(() => {
-          setLight("L1", false);
-          setLight("L2", false);
-          setLight("L3", false);
+          semaphoreScreen.classList.add("all-green");
+          setLight("L1", true);
+          setLight("L2", true);
+          setLight("L3", true);
           setLight("L4", true);
           semaMsg.textContent = "GO";
           soundHorn();
