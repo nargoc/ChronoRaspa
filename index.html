@@ -887,6 +887,30 @@
       padding: 0 10px 8px;
     }
 
+    .ble-device-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(184, 170, 250, 0.24);
+      background: rgba(30, 24, 48, 0.64);
+      border-radius: 10px;
+      padding: 8px 10px;
+      margin-top: 6px;
+    }
+
+    .ble-device-item .meta small {
+      white-space: normal;
+      word-break: break-word;
+    }
+
+    .ble-device-item button {
+      width: auto;
+      min-width: 0;
+      padding: 6px 8px;
+      font-size: 12px;
+    }
+
     @media (min-width: 980px) {
       .result-grid {
         grid-template-columns: 320px 1fr;
@@ -1493,50 +1517,61 @@
         <div class="hint" id="bleStatusText">Estado: desconectado</div>
 
         <div class="grid-2">
+          <button id="refreshBleDevices">Sensores guardados</button>
+          <div class="hint" id="bleRememberedText">Ultimo: --</div>
+        </div>
+        <div class="list" id="bleKnownDevices"></div>
+
+        <div class="grid-2">
           <button id="enableImmersive" class="primary">Pantalla completa</button>
           <button id="enableWakeLock">Mantener pantalla activa</button>
         </div>
         <div class="hint" id="immersiveStatusText">Modo inmersivo: pendiente</div>
 
-        <label>Threshold (thr)</label>
-        <input id="bleThr" type="range" min="0" max="1023" step="1" value="450">
-        <div class="hint">Valor: <b id="bleThrVal">450</b></div>
+        <details class="group-block">
+          <summary class="group-summary">Parametros Arduino</summary>
+          <div class="group-body">
+            <label>Threshold (thr)</label>
+            <input id="bleThr" type="range" min="0" max="1023" step="1" value="450">
+            <div class="hint">Valor: <b id="bleThrVal">450</b></div>
 
-        <label>Hysteresis (hyst)</label>
-        <input id="bleHyst" type="range" min="0" max="512" step="1" value="40">
-        <div class="hint">Valor: <b id="bleHystVal">40</b></div>
+            <label>Hysteresis (hyst)</label>
+            <input id="bleHyst" type="range" min="0" max="512" step="1" value="40">
+            <div class="hint">Valor: <b id="bleHystVal">40</b></div>
 
-        <label>Debounce (ms)</label>
-        <input id="bleDebounce" type="range" min="0" max="1000" step="1" value="30">
-        <div class="hint">Valor: <b id="bleDebounceVal">30</b></div>
+            <label>Debounce (ms)</label>
+            <input id="bleDebounce" type="range" min="0" max="1000" step="1" value="30">
+            <div class="hint">Valor: <b id="bleDebounceVal">30</b></div>
 
-        <label>Holdoff (ms)</label>
-        <input id="bleHoldoff" type="range" min="0" max="5000" step="10" value="250">
-        <div class="hint">Valor: <b id="bleHoldoffVal">250</b></div>
+            <label>Holdoff (ms)</label>
+            <input id="bleHoldoff" type="range" min="0" max="5000" step="10" value="250">
+            <div class="hint">Valor: <b id="bleHoldoffVal">250</b></div>
 
-        <label>Min lap (ms)</label>
-        <input id="bleMinlap" type="range" min="0" max="60000" step="100" value="15000">
-        <div class="hint">Valor: <b id="bleMinlapVal">15000</b></div>
+            <label>Min lap (ms)</label>
+            <input id="bleMinlap" type="range" min="0" max="60000" step="100" value="15000">
+            <div class="hint">Valor: <b id="bleMinlapVal">15000</b></div>
 
-        <label>Invertir deteccion</label>
-        <select id="bleInvert">
-          <option value="0">No</option>
-          <option value="1">Si</option>
-        </select>
+            <label>Invertir deteccion</label>
+            <select id="bleInvert">
+              <option value="0">No</option>
+              <option value="1">Si</option>
+            </select>
 
-        <label>EMA alpha (%)</label>
-        <input id="bleAlpha" type="range" min="1" max="100" step="1" value="35">
-        <div class="hint">Valor: <b id="bleAlphaVal">35</b></div>
+            <label>EMA alpha (%)</label>
+            <input id="bleAlpha" type="range" min="1" max="100" step="1" value="35">
+            <div class="hint">Valor: <b id="bleAlphaVal">35</b></div>
 
-        <label>Sample period (ms)</label>
-        <input id="bleSample" type="range" min="1" max="200" step="1" value="15">
-        <div class="hint">Valor: <b id="bleSampleVal">15</b></div>
+            <label>Sample period (ms)</label>
+            <input id="bleSample" type="range" min="1" max="200" step="1" value="15">
+            <div class="hint">Valor: <b id="bleSampleVal">15</b></div>
 
-        <div class="grid-3">
-          <button id="bleApply" class="primary">Aplicar al Arduino</button>
-          <button id="bleGet">Leer Arduino</button>
-          <button id="saveBleProfile" class="success">Guardar en perfil</button>
-        </div>
+            <div class="grid-3">
+              <button id="bleApply" class="primary">Aplicar al Arduino</button>
+              <button id="bleGet">Leer Arduino</button>
+              <button id="saveBleProfile" class="success">Guardar en perfil</button>
+            </div>
+          </div>
+        </details>
       </div>
 
       <div class="card">
@@ -1717,6 +1752,9 @@
       const bleDot = document.getElementById("bleDot");
       const lapDot = document.getElementById("lapDot");
       const bleStatusText = document.getElementById("bleStatusText");
+      const bleKnownDevicesEl = document.getElementById("bleKnownDevices");
+      const bleRememberedText = document.getElementById("bleRememberedText");
+      const refreshBleDevicesBtn = document.getElementById("refreshBleDevices");
       const immersiveStatusText = document.getElementById("immersiveStatusText");
       const installAppBtn = document.getElementById("installAppBtn");
 
@@ -1894,7 +1932,51 @@
           id: device && device.id ? device.id : "",
           name: device && device.name ? device.name : ""
         };
+        if (!profile.blePreferredDevice || !profile.blePreferredDevice.id) {
+          profile.blePreferredDevice = { ...profile.bleLastDevice };
+        }
         saveStore(false);
+        renderBleRemembered();
+      }
+
+      function renderBleRemembered() {
+        const profile = getActiveProfile();
+        const last = profile && profile.bleLastDevice ? profile.bleLastDevice : null;
+        const pref = profile && profile.blePreferredDevice ? profile.blePreferredDevice : null;
+        const lastTxt = last && (last.name || last.id) ? (last.name || ("ID: " + last.id)) : "--";
+        const prefTxt = pref && (pref.name || pref.id) ? (pref.name || ("ID: " + pref.id)) : "--";
+        bleRememberedText.textContent = "Ultimo: " + lastTxt + " | Predeterminado: " + prefTxt;
+      }
+
+      async function renderBleKnownDevices() {
+        bleKnownDevicesEl.innerHTML = "";
+        if (!navigator.bluetooth || !navigator.bluetooth.getDevices) {
+          bleKnownDevicesEl.innerHTML = '<div class="hint">Este navegador no soporta listado de dispositivos guardados.</div>';
+          return;
+        }
+        try {
+          const profile = getActiveProfile();
+          const devices = await navigator.bluetooth.getDevices();
+          if (!devices.length) {
+            bleKnownDevicesEl.innerHTML = '<div class="hint">No hay sensores BLE autorizados aun.</div>';
+            return;
+          }
+          devices.forEach(d => {
+            const row = document.createElement("div");
+            row.className = "ble-device-item";
+            const isPref = profile.blePreferredDevice && profile.blePreferredDevice.id === d.id;
+            row.innerHTML = '<div class="meta"><b>' + (d.name || "Dispositivo sin nombre") + '</b><small>ID: ' + d.id + (isPref ? ' | Predeterminado' : '') + '</small></div><button class="mini-btn">Usar por defecto</button>';
+            row.querySelector("button").addEventListener("click", () => {
+              profile.blePreferredDevice = { id: d.id, name: d.name || "" };
+              saveStore(false);
+              renderBleRemembered();
+              renderBleKnownDevices();
+            });
+            bleKnownDevicesEl.appendChild(row);
+          });
+        } catch {
+          bleKnownDevicesEl.innerHTML = '<div class="hint">No se pudo leer la lista de sensores guardados.</div>';
+        }
       }
 
       function getPilot(id) {
@@ -2300,6 +2382,7 @@
         });
         setBleUi(true, "BLE conectado");
         saveLastBleDevice(device);
+        renderBleKnownDevices();
         await bleSend("GET\n");
       }
 
@@ -2320,10 +2403,17 @@
         if (bleState.connected && bleState.device && bleState.device.gatt && bleState.device.gatt.connected) return true;
         const profile = getActiveProfile();
         const last = profile && profile.bleLastDevice ? profile.bleLastDevice : null;
-        if (!last || (!last.id && !last.name)) return false;
+        const pref = profile && profile.blePreferredDevice ? profile.blePreferredDevice : null;
+        if ((!last || (!last.id && !last.name)) && (!pref || (!pref.id && !pref.name))) return false;
         try {
           const devices = await navigator.bluetooth.getDevices();
-          const device = devices.find(d => (last.id && d.id === last.id) || (last.name && d.name === last.name));
+          let device = null;
+          if (pref && (pref.id || pref.name)) {
+            device = devices.find(d => (pref.id && d.id === pref.id) || (pref.name && d.name === pref.name));
+          }
+          if (!device && last && (last.id || last.name)) {
+            device = devices.find(d => (last.id && d.id === last.id) || (last.name && d.name === last.name));
+          }
           if (!device) return false;
           await connectBleDevice(device);
           return true;
@@ -2381,6 +2471,8 @@
         document.getElementById("defaultPenalty").value = String(p.defaults?.penaltySec ?? 3);
         document.getElementById("defaultRallyName").value = String(p.defaults?.rallyName ?? "Rally Session");
         syncQuickDefaults();
+        renderBleRemembered();
+        renderBleKnownDevices();
       }
 
       function syncQuickDefaults() {
@@ -2437,6 +2529,7 @@
         }
       });
       document.getElementById("bleDisconnect").addEventListener("click", disconnectBle);
+      refreshBleDevicesBtn.addEventListener("click", renderBleKnownDevices);
       document.getElementById("bleApply").addEventListener("click", async () => {
         try {
           await applyBleToArduino();
@@ -3491,7 +3584,17 @@
             return;
           } catch {}
         }
-        await shareText("Resultado piloto", text);
+        if (file) {
+          const url = URL.createObjectURL(file);
+          window.open(url, "_blank");
+          setTimeout(() => URL.revokeObjectURL(url), 15000);
+        }
+        try {
+          await navigator.clipboard.writeText(text);
+          alert("Se abrio la tarjeta visual. Texto copiado para compartir.");
+        } catch {
+          alert(text);
+        }
       }
 
       function warnIfSensorMissing() {
