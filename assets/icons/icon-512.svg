@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Scalex Rally">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#081a2a"/>
+      <stop offset="1" stop-color="#0f324b"/>
+    </linearGradient>
+  </defs>
+  <rect x="16" y="16" width="480" height="480" rx="90" fill="url(#bg)" stroke="#37dfff" stroke-width="10"/>
+  <circle cx="174" cy="364" r="54" fill="#05111c"/>
+  <circle cx="338" cy="364" r="54" fill="#05111c"/>
+  <path d="M88 336h280l54-54h34l22 20v34h-32v66h-32v-66H100v66H68v-66H48z" fill="#d9f7ff"/>
+  <text x="256" y="156" fill="#ffb15a" font-size="76" text-anchor="middle" font-family="Segoe UI, Arial" font-weight="800">RALLY</text>
+  <text x="256" y="228" fill="#9ddff0" font-size="52" text-anchor="middle" font-family="Segoe UI, Arial" font-weight="700">CHRONO</text>
+</svg>

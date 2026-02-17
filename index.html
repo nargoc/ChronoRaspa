@@ -7,6 +7,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.webmanifest">
   <title>Scalex Rally App</title>
   <style>
     :root {
@@ -101,6 +102,14 @@
     }
 
     #homeSettingsBtn {
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 12px;
+      width: auto;
+      min-width: 0;
+    }
+
+    #installAppBtn {
       border-radius: 8px;
       padding: 6px 8px;
       font-size: 12px;
@@ -1008,6 +1017,7 @@
     <div class="header-tools">
       <div class="sensor-chip" title="Estado BLE"><span class="ble-dot" id="bleDot"></span></div>
       <div class="sensor-chip" title="Paso sensor"><span class="lap-dot" id="lapDot"></span></div>
+      <button id="installAppBtn" class="mini-btn hide">Instalar</button>
       <button id="homeSettingsBtn" class="mini-btn">Settings</button>
     </div>
   </header>
@@ -1396,6 +1406,7 @@
       const lapDot = document.getElementById("lapDot");
       const bleStatusText = document.getElementById("bleStatusText");
       const immersiveStatusText = document.getElementById("immersiveStatusText");
+      const installAppBtn = document.getElementById("installAppBtn");
 
       const bleFields = {
         thr: document.getElementById("bleThr"),
@@ -1702,6 +1713,42 @@
         wakeLock: null,
         firstGestureDone: false
       };
+
+      let deferredInstallPrompt = null;
+
+      function updateInstallButton() {
+        installAppBtn.classList.toggle("hide", !deferredInstallPrompt);
+      }
+
+      async function setupInstallPrompt() {
+        window.addEventListener("beforeinstallprompt", (ev) => {
+          ev.preventDefault();
+          deferredInstallPrompt = ev;
+          updateInstallButton();
+        });
+
+        window.addEventListener("appinstalled", () => {
+          deferredInstallPrompt = null;
+          updateInstallButton();
+        });
+
+        installAppBtn.addEventListener("click", async () => {
+          if (!deferredInstallPrompt) return;
+          deferredInstallPrompt.prompt();
+          try {
+            await deferredInstallPrompt.userChoice;
+          } catch {}
+          deferredInstallPrompt = null;
+          updateInstallButton();
+        });
+      }
+
+      async function setupServiceWorker() {
+        if (!("serviceWorker" in navigator)) return;
+        try {
+          await navigator.serviceWorker.register("./sw.js", { scope: "./" });
+        } catch {}
+      }
 
       function updateImmersiveStatus() {
         const fs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
@@ -3071,6 +3118,9 @@
 
       setBleUi(false, "BLE desconectado");
       updateImmersiveStatus();
+      updateInstallButton();
+      setupInstallPrompt();
+      setupServiceWorker();
 
       renderProfiles();
       loadProfileToUi();
