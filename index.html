@@ -126,6 +126,14 @@
       place-items: center;
     }
 
+    .settings-icon {
+      width: 15px;
+      height: 15px;
+      stroke: #efeaff;
+      stroke-width: 1.8;
+      fill: none;
+    }
+
     #installAppBtn {
       border-radius: 8px;
       padding: 6px 8px;
@@ -271,6 +279,7 @@
       min-height: calc(100vh - 108px - var(--safe-b));
       display: flex;
       flex-direction: column;
+      margin-bottom: 0;
     }
 
     #view-home .menu-grid {
@@ -283,6 +292,7 @@
       overflow-y: hidden;
       gap: 10px;
       padding-bottom: 0;
+      min-height: 0;
     }
 
     #view-home .menu-tile {
@@ -1165,6 +1175,7 @@
       background: #3ef4b0;
       border-color: #93ffdc;
       box-shadow: 0 0 12px rgba(62, 244, 176, 0.6);
+      animation: connectedPulse 1.8s ease-in-out infinite;
     }
 
     .sensor-dot.pulse {
@@ -1172,6 +1183,12 @@
       border-color: #ffe29a;
       box-shadow: 0 0 14px rgba(255, 198, 41, 0.75);
       transform: scale(1.28);
+      animation: none;
+    }
+
+    @keyframes connectedPulse {
+      0%, 100% { box-shadow: 0 0 8px rgba(62, 244, 176, 0.4); }
+      50% { box-shadow: 0 0 16px rgba(62, 244, 176, 0.78); }
     }
 
     .hide { display: none !important; }
@@ -1311,9 +1328,31 @@
         gap: 12px;
         align-items: start;
       }
-      #view-home.view.active { display: block; }
+      #view-home.view.active {
+        display: block;
+        height: calc(100dvh - 66px - var(--safe-t) - var(--safe-b));
+      }
+      #view-home .card {
+        height: 100%;
+        min-height: 0;
+      }
       #view-pilots.view.active,
       #view-tracks.view.active { display: block; }
+      #view-quick.view.active,
+      #view-create.view.active,
+      #view-history.view.active,
+      #view-settings.view.active {
+        height: calc(100dvh - 66px - var(--safe-t) - var(--safe-b));
+        overflow: hidden;
+        align-items: stretch;
+      }
+      #view-quick.view.active > .card,
+      #view-create.view.active > .card,
+      #view-history.view.active > .card,
+      #view-settings.view.active > .card {
+        min-height: 0;
+        overflow: auto;
+      }
       .grid-2 { grid-template-columns: 1fr 1fr; }
       #view-home .card { min-height: calc(100vh - 96px - var(--safe-b)); }
       #view-home .menu-grid {
@@ -1371,7 +1410,7 @@
     <div class="header-tools">
       <div class="sensor-chip" title="Estado sensor"><span class="sensor-dot" id="sensorDot"></span></div>
       <button id="installAppBtn" class="mini-btn hide">Instalar</button>
-      <button id="homeSettingsBtn" class="mini-btn" title="Settings" aria-label="Settings">⚙</button>
+      <button id="homeSettingsBtn" class="mini-btn" title="Settings" aria-label="Settings"><svg class="settings-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 2.7h3l.5 2.1a7.7 7.7 0 0 1 1.8.8l1.9-1.1 2.1 2.1-1.1 1.9c.3.6.6 1.2.8 1.8l2.1.5v3l-2.1.5a7.7 7.7 0 0 1-.8 1.8l1.1 1.9-2.1 2.1-1.9-1.1a7.7 7.7 0 0 1-1.8.8l-.5 2.1h-3l-.5-2.1a7.7 7.7 0 0 1-1.8-.8l-1.9 1.1-2.1-2.1 1.1-1.9a7.7 7.7 0 0 1-.8-1.8L2.7 13.5v-3l2.1-.5a7.7 7.7 0 0 1 .8-1.8L4.5 6.3l2.1-2.1 1.9 1.1c.6-.3 1.2-.6 1.8-.8z"></path><circle cx="12" cy="12" r="3.1"></circle></svg></button>
     </div>
   </header>
 
