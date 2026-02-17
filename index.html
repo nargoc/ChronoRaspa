@@ -3519,9 +3519,15 @@
         const file = await buildRallyCardFile(rally);
         if (file && navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
           try {
-            await navigator.share({ title, text, files: [file] });
+            // Try file-only first, some targets ignore files when text is present.
+            await navigator.share({ title, files: [file] });
             return;
-          } catch {}
+          } catch {
+            try {
+              await navigator.share({ title, text, files: [file] });
+              return;
+            } catch {}
+          }
         }
         if (file) {
           const url = URL.createObjectURL(file);
@@ -3687,9 +3693,15 @@
         const file = await buildPilotTurnCardFile(turn);
         if (file && navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
           try {
-            await navigator.share({ title: "Resultado piloto", text, files: [file] });
+            // Try file-only first, some targets ignore files when text is present.
+            await navigator.share({ title: "Resultado piloto", files: [file] });
             return;
-          } catch {}
+          } catch {
+            try {
+              await navigator.share({ title: "Resultado piloto", text, files: [file] });
+              return;
+            } catch {}
+          }
         }
         if (file) {
           const url = URL.createObjectURL(file);
