@@ -545,7 +545,7 @@
     }
 
     .big-time {
-      font-size: clamp(72px, 18vw, 130px);
+      font-size: clamp(56px, 13vw, 108px);
       font-weight: 900;
       text-align: center;
       margin: 12px 0 8px;
@@ -555,16 +555,27 @@
     }
 
     .big-time.running {
-      font-size: clamp(92px, 24vw, 180px);
+      font-size: clamp(68px, 16vw, 136px);
     }
 
     .race-main {
       flex: 1;
       min-height: 0;
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
       gap: 10px;
       overflow: hidden;
+    }
+
+    .race-top {
+      min-width: 0;
+    }
+
+    .race-bottom {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(210px, 0.95fr) minmax(0, 1.05fr);
+      gap: 10px;
     }
 
     .race-left {
@@ -603,7 +614,7 @@
 
     .live-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       gap: 10px;
     }
 
@@ -1249,9 +1260,6 @@
         padding-left: 18px;
         padding-right: 18px;
       }
-      .race-main { flex-direction: row; }
-      .race-left { flex: 0 0 42%; max-width: 42%; }
-      .race-right { flex: 1; }
       .touch-start {
         min-height: calc(100vh - 116px - var(--safe-b) - var(--safe-t));
       }
@@ -1261,10 +1269,10 @@
       }
     }
 
-    @media (min-aspect-ratio: 11/9) {
-      .race-main { flex-direction: row; }
-      .race-left { flex: 0 0 42%; max-width: 42%; }
-      .race-right { flex: 1; }
+    @media (max-width: 720px) {
+      .race-bottom {
+        grid-template-columns: minmax(160px, 0.85fr) minmax(0, 1.15fr);
+      }
     }
   </style>
 </head>
@@ -1566,28 +1574,30 @@
     <div class="touch-start" id="touchStartBox">Toca para iniciar salida</div>
 
     <div class="race-main" id="raceMain">
-      <div class="race-left">
+      <div class="race-top">
         <div class="lap-count" id="raceLapBig">Vuelta 0</div>
         <div class="big-time" id="raceBigTime">00:00.000</div>
-
-        <div class="live-grid" id="raceLiveGrid">
-          <div class="stat best" id="raceBestStat"><div class="k">Mejor vuelta</div><div class="v" id="raceBestLap">--:--.---</div></div>
-          <div class="stat last" id="raceLastStat"><div class="k">Ultima vuelta</div><div class="v" id="raceLastLap">--:--.---</div></div>
-        </div>
-
-        <div class="progress" id="raceProgress">Progresion: --</div>
-        <div class="hint" id="raceMiniMsg">Esperando toque para semaforo...</div>
       </div>
 
-      <div class="race-right">
-        <div class="card" id="raceLapsCard">
-          <h3>Tiempos</h3>
-          <table>
-            <thead>
-              <tr><th>#</th><th class="right">Tiempo</th><th class="right">Delta</th><th>Estado</th></tr>
-            </thead>
-            <tbody id="raceLapTable"></tbody>
-          </table>
+      <div class="race-bottom">
+        <div class="race-left" id="raceLiveGrid">
+          <div class="stat best" id="raceBestStat"><div class="k">Mejor vuelta</div><div class="v" id="raceBestLap">--:--.---</div></div>
+          <div class="stat last" id="raceLastStat"><div class="k">Ultima vuelta</div><div class="v" id="raceLastLap">--:--.---</div></div>
+
+          <div class="progress" id="raceProgress">Progresion: --</div>
+          <div class="hint" id="raceMiniMsg">Esperando toque para semaforo...</div>
+        </div>
+
+        <div class="race-right">
+          <div class="card" id="raceLapsCard">
+            <h3>Tiempos</h3>
+            <table>
+              <thead>
+                <tr><th>#</th><th class="right">Tiempo</th><th class="right">Delta</th><th>Estado</th></tr>
+              </thead>
+              <tbody id="raceLapTable"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
