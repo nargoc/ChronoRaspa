@@ -426,11 +426,12 @@
     .race-screen {
       position: fixed;
       inset: 0;
+      height: 100dvh;
       background: radial-gradient(circle at 20% 0%, #0a2638, #03080f 55%);
       z-index: 80;
       display: none;
       overflow: hidden;
-      padding: calc(12px + var(--safe-t)) 12px calc(84px + var(--safe-b));
+      padding: calc(10px + var(--safe-t)) 12px calc(10px + var(--safe-b));
     }
 
     .race-screen.show {
@@ -576,6 +577,7 @@
       display: grid;
       grid-template-columns: minmax(210px, 0.95fr) minmax(0, 1.05fr);
       gap: 10px;
+      align-items: stretch;
     }
 
     .race-left {
@@ -606,6 +608,7 @@
 
     #raceLapsCard {
       margin: 0;
+      height: 100%;
     }
 
     #raceLapsCard table {
