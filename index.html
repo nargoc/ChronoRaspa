@@ -3663,12 +3663,6 @@
 
       raceUI.sharePilotBtn.addEventListener("click", () => {
         if (!session.turn) return;
-        const p = getPilot(session.turn.pilotId);
-        const digits = normalizePhoneForWhatsApp(p && p.phone ? p.phone : "");
-        if (digits) {
-          sendPilotWhatsappIfAvailable(session.turn);
-          return;
-        }
         sharePilotRich(session.turn);
       });
 
