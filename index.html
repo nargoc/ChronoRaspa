@@ -1888,6 +1888,15 @@
         return store.profiles.find(p => p.id === store.activeProfileId) || store.profiles[0];
       }
 
+      function saveLastBleDevice(device) {
+        const profile = getActiveProfile();
+        profile.bleLastDevice = {
+          id: device && device.id ? device.id : "",
+          name: device && device.name ? device.name : ""
+        };
+        saveStore(false);
+      }
+
       function getPilot(id) {
         return store.pilots.find(p => p.id === id) || null;
       }
@@ -2267,15 +2276,7 @@
         }
       }
 
-      async function connectBle() {
-        if (!navigator.bluetooth) {
-          alert("Web Bluetooth no disponible en este navegador.");
-          return;
-        }
-        const device = await navigator.bluetooth.requestDevice({
-          filters: [{ namePrefix: "ScalexLap" }],
-          optionalServices: [NUS_SERVICE]
-        });
+      async function connectBleDevice(device) {
         bleState.device = device;
         device.addEventListener("gattserverdisconnected", () => {
           setBleUi(false, "BLE desconectado");
@@ -2298,7 +2299,37 @@
           }
         });
         setBleUi(true, "BLE conectado");
+        saveLastBleDevice(device);
         await bleSend("GET\n");
+      }
+
+      async function connectBle() {
+        if (!navigator.bluetooth) {
+          alert("Web Bluetooth no disponible en este navegador.");
+          return;
+        }
+        const device = await navigator.bluetooth.requestDevice({
+          filters: [{ namePrefix: "ScalexLap" }],
+          optionalServices: [NUS_SERVICE]
+        });
+        await connectBleDevice(device);
+      }
+
+      async function tryAutoConnectBle() {
+        if (!navigator.bluetooth || !navigator.bluetooth.getDevices) return false;
+        if (bleState.connected && bleState.device && bleState.device.gatt && bleState.device.gatt.connected) return true;
+        const profile = getActiveProfile();
+        const last = profile && profile.bleLastDevice ? profile.bleLastDevice : null;
+        if (!last || (!last.id && !last.name)) return false;
+        try {
+          const devices = await navigator.bluetooth.getDevices();
+          const device = devices.find(d => (last.id && d.id === last.id) || (last.name && d.name === last.name));
+          if (!device) return false;
+          await connectBleDevice(device);
+          return true;
+        } catch {
+          return false;
+        }
       }
 
       async function disconnectBle() {
@@ -3346,12 +3377,31 @@
         return lines.join("\n");
       }
 
+      function accentFromTrackName(name) {
+        const s = String(name || "TRACK");
+        let hash = 0;
+        for (let i = 0; i < s.length; i++) hash = ((hash << 5) - hash) + s.charCodeAt(i);
+        const hue = Math.abs(hash) % 360;
+        return "hsl(" + hue + " 85% 62%)";
+      }
+
+      async function loadImageSafe(src) {
+        if (!src) return null;
+        return await new Promise(resolve => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = () => resolve(null);
+          img.src = src;
+        });
+      }
+
       async function buildPilotTurnCardFile(turn) {
         const p = getPilot(turn.pilotId);
         const tr = getTrack(session.trackId);
         const laps = turn.laps || [];
         const best = laps.length ? Math.min(...laps.map(l => l.totalMs)) : NaN;
         const last = laps.length ? laps[laps.length - 1].totalMs : NaN;
+        const accent = accentFromTrackName(tr ? tr.name : "track");
         const canvas = document.createElement("canvas");
         canvas.width = 1080;
         canvas.height = 1350;
@@ -3359,40 +3409,73 @@
         if (!ctx) return null;
 
         const bg = ctx.createLinearGradient(0, 0, 1080, 1350);
-        bg.addColorStop(0, "#1a1730");
-        bg.addColorStop(1, "#0f1222");
+        bg.addColorStop(0, "#1f1a34");
+        bg.addColorStop(1, "#0d1120");
         ctx.fillStyle = bg;
         ctx.fillRect(0, 0, 1080, 1350);
 
-        ctx.fillStyle = "rgba(255,255,255,0.06)";
+        const glow = ctx.createRadialGradient(180, 170, 20, 180, 170, 500);
+        glow.addColorStop(0, "rgba(255, 149, 122, 0.24)");
+        glow.addColorStop(1, "rgba(255, 149, 122, 0)");
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, 1080, 1350);
+
+        ctx.fillStyle = "rgba(255,255,255,0.07)";
         ctx.fillRect(70, 80, 940, 1190);
-        ctx.strokeStyle = "rgba(190,170,250,0.4)";
+        ctx.strokeStyle = "rgba(205,190,255,0.45)";
         ctx.lineWidth = 2;
         ctx.strokeRect(70, 80, 940, 1190);
 
+        ctx.fillStyle = accent;
+        ctx.fillRect(70, 80, 940, 12);
+
+        const pilotImg = await loadImageSafe(p && p.photo ? p.photo : "");
+        if (pilotImg) {
+          ctx.save();
+          const px = 780, py = 136, pw = 190, ph = 190;
+          ctx.beginPath();
+          ctx.rect(px, py, pw, ph);
+          ctx.clip();
+          ctx.drawImage(pilotImg, px, py, pw, ph);
+          ctx.restore();
+          ctx.strokeStyle = "rgba(255,255,255,0.35)";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(px, py, pw, ph);
+        }
+
         ctx.fillStyle = "#ffb15a";
-        ctx.font = "700 46px 'Segoe UI'";
+        ctx.font = "700 42px 'Segoe UI'";
         ctx.fillText("RaspaTimer - Resultado piloto", 110, 160);
 
         ctx.fillStyle = "#f4eeff";
-        ctx.font = "800 72px 'Segoe UI'";
+        ctx.font = "800 68px 'Segoe UI'";
         ctx.fillText(p ? p.name : "Piloto", 110, 290);
 
         ctx.fillStyle = "#c9c1e3";
-        ctx.font = "500 36px 'Segoe UI'";
+        ctx.font = "500 34px 'Segoe UI'";
         ctx.fillText("Track: " + (tr ? tr.name : "--"), 110, 360);
 
         ctx.fillStyle = "#f4eeff";
-        ctx.font = "700 44px 'Segoe UI'";
+        ctx.font = "700 42px 'Segoe UI'";
         ctx.fillText("Vueltas: " + laps.length, 110, 460);
         ctx.fillText("Mejor: " + (isFinite(best) ? fmt(best) : "--:--.---"), 110, 540);
         ctx.fillText("Ultima: " + (isFinite(last) ? fmt(last) : "--:--.---"), 110, 620);
         ctx.fillText("Falsas salidas: " + (turn.falseStarts || 0), 110, 700);
         ctx.fillText("Puntos: " + (turn.points || 0), 110, 780);
 
+        ctx.strokeStyle = "rgba(255,255,255,0.2)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(110, 840);
+        ctx.lineTo(970, 840);
+        ctx.stroke();
+
         ctx.fillStyle = "#9d95be";
         ctx.font = "500 28px 'Segoe UI'";
-        ctx.fillText(new Date().toLocaleString(), 110, 860);
+        ctx.fillText(new Date().toLocaleString(), 110, 900);
+        ctx.fillStyle = "#d9d2f2";
+        ctx.font = "600 26px 'Segoe UI'";
+        ctx.fillText("Tipo: " + session.type.toUpperCase(), 110, 950);
 
         const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png", 0.95));
         if (!blob) return null;
@@ -3510,6 +3593,7 @@
         const penaltySec = Math.max(0, Number(document.getElementById("quickPenaltySec").value) || 0);
         if (!pilotId) return alert("Selecciona o crea un piloto");
         if (!trackId) return alert("Selecciona o crea un track");
+        await tryAutoConnectBle();
         if (!warnIfSensorMissing()) return;
         await activateImmersiveMode();
         const profile = getActiveProfile();
@@ -3530,6 +3614,7 @@
         const penaltySec = Math.max(0, Number(document.getElementById("createPenaltySec").value) || 0);
         if (!trackId) return alert("Selecciona track");
         if (!orderState.length) return alert("Agrega pilotos al orden");
+        await tryAutoConnectBle();
         if (!warnIfSensorMissing()) return;
         await activateImmersiveMode();
 
@@ -3686,6 +3771,7 @@
       updateInstallButton();
       setupInstallPrompt();
       setupServiceWorker();
+      tryAutoConnectBle();
 
       renderProfiles();
       loadProfileToUi();
