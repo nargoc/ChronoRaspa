@@ -41,7 +41,8 @@ unsigned long lastLapMs    = 0;
 unsigned long lastSampleMs = 0;
 unsigned long lastPrintMs  = 0;
 
-bool detected = false;    // current detect state (after hysteresis)
+bool sensorState = false; // physical sensor state after threshold+hysteresis (non-inverted)
+bool detected = false;    // logical detect state after optional invert
 float filt = 0.0f;        // filtered analog value (EMA)
 String rxLine;
 
@@ -75,8 +76,8 @@ static void loadConfig() {
     cfg.threshold   = 450;   // adjust after seeing [HB] logs
     cfg.hysteresis  = 40;
     cfg.debounceMs  = 30;
-    cfg.holdoffMs   = 250;
-    cfg.minLapMs    = 15000;
+    cfg.holdoffMs   = 120;
+    cfg.minLapMs    = 1500;
     cfg.invert      = 0;
     cfg.emaAlphaPct = 35;    // 35% new, 65% old (moderate smoothing)
     cfg.sampleMs    = 15;    // ~66Hz sampling
@@ -169,6 +170,8 @@ void setup() {
   // init filter with first read
   int r0 = analogRead(SENSOR_PIN);
   filt = (float)r0;
+  sensorState = (r0 >= (int)cfg.threshold);
+  detected = cfg.invert ? !sensorState : sensorState;
 
   Serial.println(F("[BLE] Starting..."));
   if (!ble.begin(false)) bleFatal();
@@ -190,6 +193,8 @@ void setup() {
 
   Serial.print(F("[SENSOR] Initial raw=")); Serial.print(r0);
   Serial.print(F(" filt=")); Serial.println((int)filt);
+  Serial.print(F("[SENSOR] Initial sensorState=")); Serial.print(sensorState ? F("ON") : F("OFF"));
+  Serial.print(F(" detected=")); Serial.println(detected ? F("ON") : F("OFF"));
 
   Serial.println(F("[BLE] Ready. Waiting for connections..."));
   Serial.println(F("[TIP] Ajusta thr/hyst mirando [HB]. Si se detecta al revés usa invert=1."));
@@ -232,29 +237,30 @@ void loop() {
     uint16_t thrHi = (cfg.threshold + cfg.hysteresis);
     uint16_t thrLo = (cfg.threshold > cfg.hysteresis) ? (cfg.threshold - cfg.hysteresis) : 0;
 
-    bool newDetected = detected;
+    bool newSensorState = sensorState;
 
-    // By default: detected becomes true when filt >= thrHi, and false when filt <= thrLo
-    if (!detected && filt >= (float)thrHi) newDetected = true;
-    else if (detected && filt <= (float)thrLo) newDetected = false;
-
-    // invert logic if needed
-    if (cfg.invert) newDetected = !newDetected;
+    // Physical threshold with hysteresis (non-inverted)
+    if (!sensorState && filt >= (float)thrHi) newSensorState = true;
+    else if (sensorState && filt <= (float)thrLo) newSensorState = false;
 
     // Detect state change with debounce
-    if (newDetected != detected) {
+    if (newSensorState != sensorState) {
       if (t - lastChangeMs >= cfg.debounceMs) {
-        bool prev = detected;
-        detected = newDetected;
+        bool prevSensorState = sensorState;
+        bool prevDetected = detected;
+        sensorState = newSensorState;
+        detected = cfg.invert ? !sensorState : sensorState;
         lastChangeMs = t;
 
-        Serial.print(F("[STATE] ")); Serial.print(prev ? F("ON") : F("OFF"));
-        Serial.print(F(" -> "));     Serial.print(detected ? F("ON") : F("OFF"));
+        Serial.print(F("[STATE] sensor ")); Serial.print(prevSensorState ? F("ON") : F("OFF"));
+        Serial.print(F(" -> "));            Serial.print(sensorState ? F("ON") : F("OFF"));
+        Serial.print(F(" | detect "));      Serial.print(prevDetected ? F("ON") : F("OFF"));
+        Serial.print(F(" -> "));            Serial.print(detected ? F("ON") : F("OFF"));
         Serial.print(F(" raw="));    Serial.print(raw);
         Serial.print(F(" filt="));   Serial.println((int)filt);
 
         // Count a lap on rising of "detected" (OFF->ON)
-        if (!prev && detected) {
+        if (!prevDetected && detected) {
           unsigned long sinceLastLap = t - lastLapMs;
 
           if (sinceLastLap < cfg.holdoffMs) {
@@ -287,8 +293,11 @@ void loop() {
       lastPrintMs = t;
       Serial.print(F("[HB] raw=")); Serial.print(raw);
       Serial.print(F(" filt=")); Serial.print((int)filt);
-      Serial.print(F(" state=")); Serial.print(detected ? F("ON") : F("OFF"));
+      Serial.print(F(" sensor=")); Serial.print(sensorState ? F("ON") : F("OFF"));
+      Serial.print(F(" detect=")); Serial.print(detected ? F("ON") : F("OFF"));
       Serial.print(F(" dtSinceLap=")); Serial.print(t - lastLapMs);
+      Serial.print(F(" thrLo=")); Serial.print(thrLo);
+      Serial.print(F(" thrHi=")); Serial.print(thrHi);
       Serial.print(F(" thr=")); Serial.print(cfg.threshold);
       Serial.print(F(" hyst=")); Serial.print(cfg.hysteresis);
       Serial.print(F(" inv=")); Serial.print(cfg.invert);
