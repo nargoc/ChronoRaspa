@@ -40,6 +40,7 @@ unsigned long lastChangeMs = 0;
 unsigned long lastLapMs    = 0;
 unsigned long lastSampleMs = 0;
 unsigned long lastPrintMs  = 0;
+bool hasLap = false;
 
 bool sensorState = false; // physical sensor state after threshold+hysteresis (non-inverted)
 bool detected = false;    // logical detect state after optional invert
@@ -189,10 +190,11 @@ void setup() {
 
   ble.setMode(BLUEFRUIT_MODE_DATA);
 
-  lastLapMs = millis();
+  lastLapMs = 0;
   lastChangeMs = millis();
   lastSampleMs = millis();
   lastPrintMs = 0;
+  hasLap = false;
 
   Serial.print(F("[SENSOR] Initial raw=")); Serial.print(r0);
   Serial.print(F(" filt=")); Serial.println((int)filt);
@@ -266,15 +268,19 @@ void loop() {
         if (!prevDetected && detected) {
           unsigned long sinceLastLap = t - lastLapMs;
 
-          if (sinceLastLap < cfg.holdoffMs) {
+          if (hasLap && sinceLastLap < cfg.holdoffMs) {
             Serial.print(F("[FILTER] holdoff: ")); Serial.print(sinceLastLap);
             Serial.print(F("ms < ")); Serial.print(cfg.holdoffMs);
             Serial.println(F("ms -> ignored"));
-          } else if (cfg.minLapMs > 0 && sinceLastLap < cfg.minLapMs) {
+          } else if (hasLap && cfg.minLapMs > 0 && sinceLastLap < cfg.minLapMs) {
             Serial.print(F("[FILTER] minlap: ")); Serial.print(sinceLastLap);
             Serial.print(F("ms < ")); Serial.print(cfg.minLapMs);
             Serial.println(F("ms -> ignored"));
           } else {
+            if (!hasLap) {
+              Serial.println(F("[LAP] First trigger accepted (minlap/holdoff skipped)."));
+            }
+            hasLap = true;
             lastLapMs = t;
             ble.print("LAP\n");
             digitalWrite(LED_PIN, !digitalRead(LED_PIN));
@@ -298,7 +304,8 @@ void loop() {
       Serial.print(F(" filt=")); Serial.print((int)filt);
       Serial.print(F(" sensor=")); Serial.print(sensorState ? F("ON") : F("OFF"));
       Serial.print(F(" detect=")); Serial.print(detected ? F("ON") : F("OFF"));
-      Serial.print(F(" dtSinceLap=")); Serial.print(t - lastLapMs);
+      Serial.print(F(" dtSinceLap=")); Serial.print(hasLap ? (t - lastLapMs) : 0);
+      Serial.print(F(" hasLap=")); Serial.print(hasLap ? 1 : 0);
       Serial.print(F(" thrLo=")); Serial.print(thrLo);
       Serial.print(F(" thrHi=")); Serial.print(thrHi);
       Serial.print(F(" thr=")); Serial.print(cfg.threshold);
