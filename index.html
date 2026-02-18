@@ -2274,6 +2274,7 @@
         lineBuf: "",
         connected: false
       };
+      let bleStatusBase = "Status: disconnected";
 
       const deviceState = {
         wakeLock: null,
@@ -2431,7 +2432,8 @@
       function setBleUi(connected, text) {
         bleState.connected = connected;
         sensorDot.classList.toggle("connected", connected);
-        bleStatusText.textContent = "Estado: " + text;
+        bleStatusBase = "Status: " + text;
+        bleStatusText.textContent = bleStatusBase;
       }
 
       function flashLapBottom() {
@@ -2504,8 +2506,21 @@
 
       function onBleLine(line) {
         if (!line) return;
-        if (line === "LAP") {
+        const upper = String(line).toUpperCase();
+        const isLapSignal =
+          upper === "LAP" ||
+          upper.startsWith("LAP ") ||
+          upper.startsWith("LAP:") ||
+          upper.startsWith("PASS") ||
+          upper.startsWith("TRIG") ||
+          upper.includes("DETECT");
+
+        if (isLapSignal) {
           flashLapBottom();
+          bleStatusText.textContent = "Status: sensor pass detected";
+          setTimeout(() => {
+            bleStatusText.textContent = bleStatusBase;
+          }, 700);
           handleLapTrigger(performance.now());
           return;
         }
