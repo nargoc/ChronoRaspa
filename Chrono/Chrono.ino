@@ -30,7 +30,7 @@ struct Config {
   uint16_t sampleMs;      // sampling period for analog processing
   uint32_t magic;
 };
-const uint32_t CFG_MAGIC = 0x5343414CUL; // "SCAL"
+const uint32_t CFG_MAGIC = 0x5343414DUL; // "SCAM" (bumped to refresh defaults once)
 Config cfg;
 
 // =====================
@@ -69,18 +69,21 @@ static void bleSendCfgLine() {
   ble.print(buf);
 }
 
+static void setFactoryDefaults() {
+  cfg.threshold   = 450;
+  cfg.hysteresis  = 40;
+  cfg.debounceMs  = 30;
+  cfg.holdoffMs   = 250;
+  cfg.minLapMs    = 15000;
+  cfg.invert      = 0;
+  cfg.emaAlphaPct = 35;
+  cfg.sampleMs    = 15;
+}
+
 static void loadConfig() {
   EEPROM.get(0, cfg);
   if (cfg.magic != CFG_MAGIC) {
-    // Defaults that usually work as a starting point
-    cfg.threshold   = 450;   // adjust after seeing [HB] logs
-    cfg.hysteresis  = 40;
-    cfg.debounceMs  = 30;
-    cfg.holdoffMs   = 120;
-    cfg.minLapMs    = 1500;
-    cfg.invert      = 0;
-    cfg.emaAlphaPct = 35;    // 35% new, 65% old (moderate smoothing)
-    cfg.sampleMs    = 15;    // ~66Hz sampling
+    setFactoryDefaults();
     cfg.magic       = CFG_MAGIC;
     EEPROM.put(0, cfg);
     Serial.println(F("[EEPROM] No valid config found -> defaults saved."));
