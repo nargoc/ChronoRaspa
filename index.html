@@ -2530,13 +2530,40 @@
         }
       }
 
+      function processBleChunk(rawChunk) {
+        const chunk = String(rawChunk || "").replace(/\0/g, "");
+        if (!chunk) return;
+
+        bleState.lineBuf += chunk;
+        let idx = -1;
+        while ((idx = bleState.lineBuf.indexOf("\n")) >= 0) {
+          const line = bleState.lineBuf.slice(0, idx).trim();
+          bleState.lineBuf = bleState.lineBuf.slice(idx + 1);
+          onBleLine(line);
+        }
+
+        // Fallback for peripherals sending tokens without line endings.
+        const pending = bleState.lineBuf;
+        const tokenMatch = pending.match(/(?:^|[^A-Za-z])(LAP|PASS|TRIG|DETECT)(?:[^A-Za-z]|$)/i);
+        if (tokenMatch) {
+          onBleLine(tokenMatch[1]);
+          bleState.lineBuf = pending.slice(tokenMatch.index + tokenMatch[0].length).slice(-64);
+          return;
+        }
+
+        // Keep a short tail to avoid unbounded growth if no newline arrives.
+        if (bleState.lineBuf.length > 128) bleState.lineBuf = bleState.lineBuf.slice(-128);
+      }
+
       async function connectBleDevice(device) {
         bleState.device = device;
+        bleState.lineBuf = "";
         device.addEventListener("gattserverdisconnected", () => {
           setBleUi(false, "BLE disconnected");
           bleState.server = null;
           bleState.rxChar = null;
           bleState.txChar = null;
+          bleState.lineBuf = "";
         });
         bleState.server = await device.gatt.connect();
         const service = await bleState.server.getPrimaryService(NUS_SERVICE);
@@ -2544,13 +2571,8 @@
         bleState.txChar = await service.getCharacteristic(NUS_TX);
         await bleState.txChar.startNotifications();
         bleState.txChar.addEventListener("characteristicvaluechanged", ev => {
-          bleState.lineBuf += td.decode(ev.target.value);
-          let idx = -1;
-          while ((idx = bleState.lineBuf.indexOf("\n")) >= 0) {
-            const line = bleState.lineBuf.slice(0, idx).trim();
-            bleState.lineBuf = bleState.lineBuf.slice(idx + 1);
-            onBleLine(line);
-          }
+          const decoded = td.decode(ev.target.value || new DataView(new ArrayBuffer(0)));
+          processBleChunk(decoded);
         });
         setBleUi(true, "BLE connected");
         saveLastBleDevice(device);
