@@ -185,9 +185,9 @@ class ServerCallbacks : public BLEServerCallbacks {
 
 class RxCallbacks : public BLECharacteristicCallbacks {
   void onWrite(BLECharacteristic *pCharacteristic) override {
-    std::string value = pCharacteristic->getValue();
-    for (size_t i = 0; i < value.size(); i++) {
-      char c = (char)value[i];
+    String value = pCharacteristic->getValue();
+    for (int i = 0; i < value.length(); i++) {
+      char c = value.charAt(i);
       if (c == '\n') {
         applyCommand(rxLine);
         rxLine = "";
