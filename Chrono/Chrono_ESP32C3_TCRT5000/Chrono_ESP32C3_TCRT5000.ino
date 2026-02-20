@@ -203,6 +203,7 @@ class RxCallbacks : public NimBLECharacteristicCallbacks {
 
 static void setupBle() {
   NimBLEDevice::init("ScalexLap");
+  NimBLEDevice::setDeviceName("ScalexLap");
   NimBLEDevice::setPower(ESP_PWR_LVL_P9);
 
   bleServer = NimBLEDevice::createServer();
@@ -227,6 +228,8 @@ static void setupBle() {
   adv->setName("ScalexLap");
   adv->addServiceUUID(NUS_SERVICE_UUID);
   adv->enableScanResponse(true);
+  adv->setMinInterval(160);
+  adv->setMaxInterval(240);
   adv->start();
 
   Serial.println(F("[BLE] Advertising as ScalexLap"));

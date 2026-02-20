@@ -2585,13 +2585,22 @@
           alert("Web Bluetooth is not available in this browser.");
           return;
         }
-        const device = await navigator.bluetooth.requestDevice({
-          filters: [
-            { namePrefix: "ScalexLap" },
-            { services: [NUS_SERVICE] }
-          ],
-          optionalServices: [NUS_SERVICE]
-        });
+        let device = null;
+        try {
+          device = await navigator.bluetooth.requestDevice({
+            filters: [
+              { namePrefix: "ScalexLap" },
+              { services: [NUS_SERVICE] }
+            ],
+            optionalServices: [NUS_SERVICE]
+          });
+        } catch (err) {
+          if (!err || err.name !== "NotFoundError") throw err;
+          device = await navigator.bluetooth.requestDevice({
+            acceptAllDevices: true,
+            optionalServices: [NUS_SERVICE]
+          });
+        }
         await connectBleDevice(device);
       }
 
