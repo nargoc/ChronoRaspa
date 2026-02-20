@@ -167,12 +167,17 @@ static void applyCommand(String line) {
 }
 
 class ServerCallbacks : public NimBLEServerCallbacks {
-  void onConnect(NimBLEServer *pServer) override {
+  void onConnect(NimBLEServer *pServer, NimBLEConnInfo &connInfo) override {
+    (void)pServer;
+    (void)connInfo;
     bleConnected = true;
     Serial.println(F("[BLE] Client connected"));
   }
 
-  void onDisconnect(NimBLEServer *pServer) override {
+  void onDisconnect(NimBLEServer *pServer, NimBLEConnInfo &connInfo, int reason) override {
+    (void)pServer;
+    (void)connInfo;
+    (void)reason;
     bleConnected = false;
     Serial.println(F("[BLE] Client disconnected"));
     NimBLEDevice::startAdvertising();
@@ -180,7 +185,8 @@ class ServerCallbacks : public NimBLEServerCallbacks {
 };
 
 class RxCallbacks : public NimBLECharacteristicCallbacks {
-  void onWrite(NimBLECharacteristic *pCharacteristic) override {
+  void onWrite(NimBLECharacteristic *pCharacteristic, NimBLEConnInfo &connInfo) override {
+    (void)connInfo;
     std::string value = pCharacteristic->getValue();
     for (size_t i = 0; i < value.size(); i++) {
       char c = (char)value[i];
@@ -219,7 +225,7 @@ static void setupBle() {
 
   NimBLEAdvertising *adv = NimBLEDevice::getAdvertising();
   adv->addServiceUUID(NUS_SERVICE_UUID);
-  adv->setScanResponse(true);
+  adv->enableScanResponse(true);
   adv->start();
 
   Serial.println(F("[BLE] Advertising as ScalexLap"));
