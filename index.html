@@ -2586,7 +2586,10 @@
           return;
         }
         const device = await navigator.bluetooth.requestDevice({
-          filters: [{ namePrefix: "ScalexLap" }],
+          filters: [
+            { namePrefix: "ScalexLap" },
+            { services: [NUS_SERVICE] }
+          ],
           optionalServices: [NUS_SERVICE]
         });
         await connectBleDevice(device);

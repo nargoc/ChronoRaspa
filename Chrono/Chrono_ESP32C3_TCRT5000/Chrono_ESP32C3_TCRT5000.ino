@@ -224,6 +224,7 @@ static void setupBle() {
   svc->start();
 
   NimBLEAdvertising *adv = NimBLEDevice::getAdvertising();
+  adv->setName("ScalexLap");
   adv->addServiceUUID(NUS_SERVICE_UUID);
   adv->enableScanResponse(true);
   adv->start();
