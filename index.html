@@ -1946,6 +1946,10 @@
       const historySelectedHint = document.getElementById("historySelectedHint");
       const langSelect = document.getElementById("langSelect");
       let pendingPilotWhatsappUrl = "";
+      const sharedLookup = {
+        pilotsById: {},
+        tracksById: {}
+      };
 
       function getLang() {
         const p = getActiveProfile();
@@ -2126,11 +2130,11 @@
       }
 
       function getPilot(id) {
-        return store.pilots.find(p => p.id === id) || null;
+        return store.pilots.find(p => p.id === id) || sharedLookup.pilotsById[id] || null;
       }
 
       function getTrack(id) {
-        return store.tracks.find(t => t.id === id) || null;
+        return store.tracks.find(t => t.id === id) || sharedLookup.tracksById[id] || null;
       }
 
       function updateSelectionInfo() {
@@ -3689,6 +3693,81 @@
         return lines.join("\n");
       }
 
+      function encodeSharePayload(payload) {
+        const json = JSON.stringify(payload);
+        const bytes = te.encode(json);
+        let bin = "";
+        for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+        return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+      }
+
+      function decodeSharePayload(encoded) {
+        const norm = String(encoded || "").replace(/-/g, "+").replace(/_/g, "/");
+        const padLen = (4 - (norm.length % 4)) % 4;
+        const padded = norm + "=".repeat(padLen);
+        const bin = atob(padded);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        const json = td.decode(bytes);
+        return JSON.parse(json);
+      }
+
+      function buildRallyShareUrl(rally) {
+        const turns = Array.isArray(rally.turns) ? rally.turns : [];
+        const pilotIds = Array.from(new Set(turns.map(t => t.pilotId).filter(Boolean)));
+        const pilots = pilotIds
+          .map(id => getPilot(id))
+          .filter(Boolean)
+          .map(p => ({ id: p.id, name: p.name, initials: p.initials, phone: p.phone || "" }));
+        const tr = getTrack(rally.trackId);
+        const tracks = tr ? [{ id: tr.id, name: tr.name, distanceM: tr.distanceM || 0 }] : [];
+
+        const payload = {
+          v: 1,
+          rally,
+          pilots,
+          tracks
+        };
+        const encoded = encodeSharePayload(payload);
+        return window.location.origin + window.location.pathname + "#share=" + encoded;
+      }
+
+      function openSharedRallyPayload(payload) {
+        if (!payload || !payload.rally) return false;
+
+        sharedLookup.pilotsById = {};
+        sharedLookup.tracksById = {};
+        (Array.isArray(payload.pilots) ? payload.pilots : []).forEach(p => {
+          if (!p || !p.id) return;
+          sharedLookup.pilotsById[p.id] = p;
+        });
+        (Array.isArray(payload.tracks) ? payload.tracks : []).forEach(t => {
+          if (!t || !t.id) return;
+          sharedLookup.tracksById[t.id] = t;
+        });
+
+        go("history");
+        historyList.innerHTML = '<div class="hint">Resultado compartido (solo lectura)</div>';
+        selectedHistoryId = null;
+        historySelectedHint.textContent = "Rally compartido: " + (payload.rally.name || "--");
+        renderHistoryDetail(payload.rally);
+        return true;
+      }
+
+      function tryOpenSharedRallyFromHash() {
+        try {
+          const hash = (window.location.hash || "").replace(/^#/, "");
+          if (!hash) return false;
+          const params = new URLSearchParams(hash);
+          const encoded = params.get("share");
+          if (!encoded) return false;
+          const payload = decodeSharePayload(encoded);
+          return openSharedRallyPayload(payload);
+        } catch {
+          return false;
+        }
+      }
+
       async function buildRallyCardFile(rally) {
         const track = getTrack(rally.trackId);
         const bestRanking = Array.isArray(rally.summary?.bestRanking) ? rally.summary.bestRanking : [];
@@ -3936,20 +4015,23 @@
       }
 
       async function shareRallyRich(rally, title = "Resultado rally") {
-        const file = await buildRallyCardFile(rally);
-        if (file && navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+        const url = buildRallyShareUrl(rally);
+        if (url.length > 7500) {
+          alert("La sesion es demasiado larga para compartir por URL sin backend. Usa compartir imagen o recorta la sesion.");
+          return;
+        }
+        if (navigator.share) {
           try {
-            await navigator.share({ title, files: [file] });
+            await navigator.share({ title, url, text: url });
             return;
           } catch {}
         }
-        if (file) {
-          const url = URL.createObjectURL(file);
-          window.open(url, "_blank");
-          setTimeout(() => URL.revokeObjectURL(url), 15000);
-          return;
+        try {
+          await navigator.clipboard.writeText(url);
+          alert("Enlace copiado al portapapeles");
+        } catch {
+          alert(url);
         }
-        alert("No se pudo generar la tarjeta visual del rally.");
       }
 
       async function shareText(title, text) {
@@ -4410,6 +4492,7 @@
       refreshTrackSelectors();
       renderOrderList();
       renderHistory();
+      tryOpenSharedRallyFromHash();
       runTimerLoop();
     })();
   </script>
