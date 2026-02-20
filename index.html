@@ -3691,14 +3691,16 @@
 
       async function buildRallyCardFile(rally) {
         const track = getTrack(rally.trackId);
-        const bestRanking = Array.isArray(rally.summary?.bestRanking) ? rally.summary.bestRanking.slice(0, 5) : [];
-        const pointsRanking = Array.isArray(rally.summary?.pointsRanking) ? rally.summary.pointsRanking.slice(0, 5) : [];
+        const bestRanking = Array.isArray(rally.summary?.bestRanking) ? rally.summary.bestRanking.slice(0, 6) : [];
+        const pointsRanking = Array.isArray(rally.summary?.pointsRanking) ? rally.summary.pointsRanking.slice(0, 6) : [];
+        const turns = Array.isArray(rally.turns) ? rally.turns : [];
+        const byPilot = rally.summary && rally.summary.byPilot ? Object.values(rally.summary.byPilot) : [];
         const bestGlobal = bestRanking.length ? bestRanking[0] : null;
         const accent = accentFromTrackName(track ? track.name : "track");
 
         const canvas = document.createElement("canvas");
         canvas.width = 1080;
-        canvas.height = 1350;
+        canvas.height = 1720;
         const ctx = canvas.getContext("2d");
         if (!ctx) return null;
 
@@ -3715,10 +3717,10 @@
         ctx.fillRect(0, 0, 1080, 1350);
 
         ctx.fillStyle = "rgba(255,255,255,0.06)";
-        ctx.fillRect(70, 80, 940, 1190);
+        ctx.fillRect(70, 80, 940, 1560);
         ctx.strokeStyle = "rgba(205,190,255,0.42)";
         ctx.lineWidth = 2;
-        ctx.strokeRect(70, 80, 940, 1190);
+        ctx.strokeRect(70, 80, 940, 1560);
         ctx.fillStyle = accent;
         ctx.fillRect(70, 80, 940, 12);
 
@@ -3736,15 +3738,16 @@
         ctx.fillText("Tipo: " + String(rally.type || "").toUpperCase(), 110, 352);
         ctx.fillText("Fecha: " + new Date(rally.createdAt).toLocaleString(), 110, 396);
         ctx.fillText("Turnos: " + ((rally.turns || []).length), 110, 440);
+        ctx.fillText("Penalizacion salida falsa: +" + (rally.penaltySec || 0) + "s", 110, 484);
 
         if (bestGlobal) {
           const p = getPilot(bestGlobal.pilotId);
           ctx.fillStyle = "#f4eeff";
           ctx.font = "700 34px 'Segoe UI'";
-          ctx.fillText("Best global: " + fmt(bestGlobal.value), 110, 500);
+          ctx.fillText("Best global: " + fmt(bestGlobal.value), 110, 554);
           ctx.fillStyle = "#ffcfb0";
           ctx.font = "600 30px 'Segoe UI'";
-          ctx.fillText("Piloto: " + (p ? p.name : "--"), 110, 540);
+          ctx.fillText("Piloto: " + (p ? p.name : "--"), 110, 594);
         }
 
         const drawRankBlock = (title, rows, startY, isTime) => {
@@ -3766,8 +3769,51 @@
           });
         };
 
-        drawRankBlock("Ranking mejor vuelta", bestRanking, 640, true);
-        drawRankBlock("Ranking puntos", pointsRanking, 940, false);
+        drawRankBlock("Ranking mejor vuelta", bestRanking, 660, true);
+        drawRankBlock("Ranking puntos", pointsRanking, 920, false);
+
+        ctx.fillStyle = "#ffb15a";
+        ctx.font = "700 32px 'Segoe UI'";
+        ctx.fillText("Resumen por piloto", 110, 1180);
+        let pilotY = 1220;
+        byPilot
+          .sort((a, b) => (b.points || 0) - (a.points || 0))
+          .slice(0, 5)
+          .forEach(p => {
+            const pilot = getPilot(p.pilotId);
+            const best = isFinite(p.bestLap) ? fmt(p.bestLap) : "--";
+            const avg = isFinite(p.avgLap) ? fmt(p.avgLap) : "--";
+            ctx.fillStyle = "#f0ecff";
+            ctx.font = "600 24px 'Segoe UI'";
+            ctx.fillText((pilot ? pilot.name : "Piloto") + " | V:" + (p.laps ? p.laps.length : 0) + " | B:" + best + " | M:" + avg, 122, pilotY);
+            ctx.fillStyle = "#c9c1e3";
+            ctx.font = "500 22px 'Segoe UI'";
+            ctx.fillText("Falsas: " + (p.falseStarts || 0) + " | Puntos: " + (p.points || 0), 122, pilotY + 28);
+            pilotY += 58;
+          });
+
+        ctx.fillStyle = "#ffb15a";
+        ctx.font = "700 32px 'Segoe UI'";
+        ctx.fillText("Detalle de tandas", 110, 1510);
+        let detailY = 1550;
+        let detailCount = 0;
+        for (let ti = 0; ti < turns.length && detailCount < 5; ti++) {
+          const turn = turns[ti];
+          const pilot = getPilot(turn.pilotId);
+          const laps = Array.isArray(turn.laps) ? turn.laps : [];
+          const bestTurn = laps.length ? Math.min(...laps.map(lp => lp.totalMs)) : NaN;
+          ctx.fillStyle = "#f0ecff";
+          ctx.font = "600 23px 'Segoe UI'";
+          ctx.fillText((pilot ? pilot.name : "Piloto") + " T" + (turn.heatIndex || 1) + " | V:" + laps.length + " | Best: " + (isFinite(bestTurn) ? fmt(bestTurn) : "--") + " | F:" + (turn.falseStarts || 0), 122, detailY);
+          detailY += 30;
+          detailCount += 1;
+        }
+
+        if (turns.length > detailCount) {
+          ctx.fillStyle = "#c9c1e3";
+          ctx.font = "500 20px 'Segoe UI'";
+          ctx.fillText("+" + (turns.length - detailCount) + " tandas mas en detalle dentro de la app", 122, Math.min(detailY + 6, 1655));
+        }
 
         const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png", 0.95));
         if (!blob) return null;
@@ -3775,30 +3821,20 @@
       }
 
       async function shareRallyRich(rally, title = "Resultado rally") {
-        const text = buildShareText(rally);
         const file = await buildRallyCardFile(rally);
         if (file && navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
           try {
-            await navigator.share({ title, text, files: [file] });
+            await navigator.share({ title, files: [file] });
             return;
-          } catch {
-            try {
-              await navigator.share({ title, files: [file] });
-              return;
-            } catch {}
-          }
+          } catch {}
         }
         if (file) {
           const url = URL.createObjectURL(file);
           window.open(url, "_blank");
           setTimeout(() => URL.revokeObjectURL(url), 15000);
+          return;
         }
-        try {
-          await navigator.clipboard.writeText(text);
-          alert("Se abrio la tarjeta visual del rally. Texto copiado para compartir.");
-        } catch {
-          alert(text);
-        }
+        alert("No se pudo generar la tarjeta visual del rally.");
       }
 
       async function shareText(title, text) {
