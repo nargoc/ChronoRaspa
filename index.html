@@ -2506,6 +2506,12 @@
 
       function onBleLine(line) {
         if (!line) return;
+        bleStatusText.textContent = "Status: RX " + line;
+        setTimeout(() => {
+          if (bleStatusText.textContent.startsWith("Status: RX ")) {
+            bleStatusText.textContent = bleStatusBase;
+          }
+        }, 900);
         const upper = String(line).toUpperCase();
         const isLapSignal =
           upper === "LAP" ||

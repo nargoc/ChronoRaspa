@@ -119,9 +119,11 @@ static String cfgLine() {
 }
 
 static void bleNotifyText(const String &s) {
-  if (!txChar || !bleConnected) return;
+  if (!txChar) return;
   txChar->setValue((uint8_t *)s.c_str(), s.length());
   txChar->notify();
+  Serial.print(F("[BLE TX] "));
+  Serial.print(s);
 }
 
 static bool parseKeyU32(const String &line, const char *key, uint32_t &out) {
@@ -209,7 +211,7 @@ static void setupBle() {
 
   txChar = svc->createCharacteristic(
     NUS_TX_UUID,
-    BLECharacteristic::PROPERTY_NOTIFY
+    BLECharacteristic::PROPERTY_NOTIFY | BLECharacteristic::PROPERTY_READ
   );
   txChar->addDescriptor(new BLE2902());
 
