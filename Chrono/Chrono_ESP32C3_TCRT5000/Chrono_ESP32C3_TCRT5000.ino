@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <Preferences.h>
-#include <NimBLEDevice.h>
+#include <BLEDevice.h>
+#include <BLE2902.h>
 
 // ESP32-C3 + TCRT5000 (digital DO)
 // BLE protocol compatible with web app (Nordic UART Service):
@@ -31,9 +32,9 @@ struct Config {
 Config cfg;
 Preferences prefs;
 
-NimBLEServer *bleServer = nullptr;
-NimBLECharacteristic *txChar = nullptr;
-NimBLECharacteristic *rxChar = nullptr;
+BLEServer *bleServer = nullptr;
+BLECharacteristic *txChar = nullptr;
+BLECharacteristic *rxChar = nullptr;
 bool bleConnected = false;
 String rxLine;
 
@@ -166,27 +167,24 @@ static void applyCommand(String line) {
   }
 }
 
-class ServerCallbacks : public NimBLEServerCallbacks {
-  void onConnect(NimBLEServer *pServer, NimBLEConnInfo &connInfo) override {
+class ServerCallbacks : public BLEServerCallbacks {
+  void onConnect(BLEServer *pServer) override {
     (void)pServer;
-    (void)connInfo;
     bleConnected = true;
     Serial.println(F("[BLE] Client connected"));
   }
 
-  void onDisconnect(NimBLEServer *pServer, NimBLEConnInfo &connInfo, int reason) override {
+  void onDisconnect(BLEServer *pServer) override {
     (void)pServer;
-    (void)connInfo;
-    (void)reason;
     bleConnected = false;
     Serial.println(F("[BLE] Client disconnected"));
-    NimBLEDevice::startAdvertising();
+    delay(60);
+    BLEDevice::startAdvertising();
   }
 };
 
-class RxCallbacks : public NimBLECharacteristicCallbacks {
-  void onWrite(NimBLECharacteristic *pCharacteristic, NimBLEConnInfo &connInfo) override {
-    (void)connInfo;
+class RxCallbacks : public BLECharacteristicCallbacks {
+  void onWrite(BLECharacteristic *pCharacteristic) override {
     std::string value = pCharacteristic->getValue();
     for (size_t i = 0; i < value.size(); i++) {
       char c = (char)value[i];
@@ -202,34 +200,32 @@ class RxCallbacks : public NimBLECharacteristicCallbacks {
 };
 
 static void setupBle() {
-  NimBLEDevice::init("ScalexLap");
-  NimBLEDevice::setDeviceName("ScalexLap");
-  NimBLEDevice::setPower(ESP_PWR_LVL_P9);
+  BLEDevice::init("ScalexLap");
 
-  bleServer = NimBLEDevice::createServer();
+  bleServer = BLEDevice::createServer();
   bleServer->setCallbacks(new ServerCallbacks());
 
-  NimBLEService *svc = bleServer->createService(NUS_SERVICE_UUID);
+  BLEService *svc = bleServer->createService(NUS_SERVICE_UUID);
 
   txChar = svc->createCharacteristic(
     NUS_TX_UUID,
-    NIMBLE_PROPERTY::NOTIFY
+    BLECharacteristic::PROPERTY_NOTIFY
   );
+  txChar->addDescriptor(new BLE2902());
 
   rxChar = svc->createCharacteristic(
     NUS_RX_UUID,
-    NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::WRITE_NR
+    BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_WRITE_NR
   );
   rxChar->setCallbacks(new RxCallbacks());
 
   svc->start();
 
-  NimBLEAdvertising *adv = NimBLEDevice::getAdvertising();
-  adv->setName("ScalexLap");
+  BLEAdvertising *adv = BLEDevice::getAdvertising();
   adv->addServiceUUID(NUS_SERVICE_UUID);
-  adv->enableScanResponse(true);
-  adv->setMinInterval(160);
-  adv->setMaxInterval(240);
+  adv->setScanResponse(true);
+  adv->setMinPreferred(0x06);
+  adv->setMinPreferred(0x12);
   adv->start();
 
   Serial.println(F("[BLE] Advertising as ScalexLap"));
