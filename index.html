@@ -3691,36 +3691,57 @@
 
       async function buildRallyCardFile(rally) {
         const track = getTrack(rally.trackId);
-        const bestRanking = Array.isArray(rally.summary?.bestRanking) ? rally.summary.bestRanking.slice(0, 6) : [];
-        const pointsRanking = Array.isArray(rally.summary?.pointsRanking) ? rally.summary.pointsRanking.slice(0, 6) : [];
+        const bestRanking = Array.isArray(rally.summary?.bestRanking) ? rally.summary.bestRanking : [];
+        const pointsRanking = Array.isArray(rally.summary?.pointsRanking) ? rally.summary.pointsRanking : [];
         const turns = Array.isArray(rally.turns) ? rally.turns : [];
         const byPilot = rally.summary && rally.summary.byPilot ? Object.values(rally.summary.byPilot) : [];
         const bestGlobal = bestRanking.length ? bestRanking[0] : null;
         const accent = accentFromTrackName(track ? track.name : "track");
 
+        const detailRows = [];
+        turns.forEach(turn => {
+          const pilot = getPilot(turn.pilotId);
+          const laps = Array.isArray(turn.laps) ? turn.laps : [];
+          detailRows.push((pilot ? pilot.name : "Piloto") + " | Tanda " + (turn.heatIndex || 1) + " | Vueltas " + laps.length + " | Falsas " + (turn.falseStarts || 0));
+          if (!laps.length) {
+            detailRows.push("  Sin vueltas registradas");
+            return;
+          }
+          laps.forEach((lap, i) => {
+            detailRows.push("  V" + (i + 1) + "  raw " + fmt(lap.rawMs) + "  pen " + (lap.penaltyMs ? ("+" + fmt(lap.penaltyMs)) : "-") + "  total " + fmt(lap.totalMs));
+          });
+        });
+
+        const cardInnerHeight = Math.max(
+          1560,
+          1120 + (bestRanking.length + pointsRanking.length) * 36 + byPilot.length * 56 + detailRows.length * 30
+        );
+        const canvasHeight = Math.min(12000, cardInnerHeight + 160);
+        const contentBottom = canvasHeight - 80;
+
         const canvas = document.createElement("canvas");
         canvas.width = 1080;
-        canvas.height = 1720;
+        canvas.height = canvasHeight;
         const ctx = canvas.getContext("2d");
         if (!ctx) return null;
 
-        const bg = ctx.createLinearGradient(0, 0, 1080, 1350);
+        const bg = ctx.createLinearGradient(0, 0, 1080, canvas.height);
         bg.addColorStop(0, "#1c1833");
         bg.addColorStop(1, "#0e1221");
         ctx.fillStyle = bg;
-        ctx.fillRect(0, 0, 1080, 1350);
+        ctx.fillRect(0, 0, 1080, canvas.height);
 
         const glow = ctx.createRadialGradient(190, 170, 10, 190, 170, 560);
         glow.addColorStop(0, "rgba(255, 150, 122, 0.22)");
         glow.addColorStop(1, "rgba(255, 150, 122, 0)");
         ctx.fillStyle = glow;
-        ctx.fillRect(0, 0, 1080, 1350);
+        ctx.fillRect(0, 0, 1080, canvas.height);
 
         ctx.fillStyle = "rgba(255,255,255,0.06)";
-        ctx.fillRect(70, 80, 940, 1560);
+        ctx.fillRect(70, 80, 940, cardInnerHeight);
         ctx.strokeStyle = "rgba(205,190,255,0.42)";
         ctx.lineWidth = 2;
-        ctx.strokeRect(70, 80, 940, 1560);
+        ctx.strokeRect(70, 80, 940, cardInnerHeight);
         ctx.fillStyle = accent;
         ctx.fillRect(70, 80, 940, 12);
 
@@ -3737,7 +3758,7 @@
         ctx.fillText("Track: " + (track ? track.name : "--"), 110, 308);
         ctx.fillText("Tipo: " + String(rally.type || "").toUpperCase(), 110, 352);
         ctx.fillText("Fecha: " + new Date(rally.createdAt).toLocaleString(), 110, 396);
-        ctx.fillText("Turnos: " + ((rally.turns || []).length), 110, 440);
+        ctx.fillText("Turnos: " + turns.length, 110, 440);
         ctx.fillText("Penalizacion salida falsa: +" + (rally.penaltySec || 0) + "s", 110, 484);
 
         if (bestGlobal) {
@@ -3767,18 +3788,19 @@
             ctx.fillText(rightVal, 980 - w, y);
             y += 44;
           });
+          return y;
         };
 
-        drawRankBlock("Ranking mejor vuelta", bestRanking, 660, true);
-        drawRankBlock("Ranking puntos", pointsRanking, 920, false);
+        let y = 660;
+        y = drawRankBlock("Ranking mejor vuelta", bestRanking, y, true) + 24;
+        y = drawRankBlock("Ranking puntos", pointsRanking, y, false) + 28;
 
         ctx.fillStyle = "#ffb15a";
         ctx.font = "700 32px 'Segoe UI'";
-        ctx.fillText("Resumen por piloto", 110, 1180);
-        let pilotY = 1220;
+        ctx.fillText("Resumen por piloto", 110, y);
+        let pilotY = y + 40;
         byPilot
           .sort((a, b) => (b.points || 0) - (a.points || 0))
-          .slice(0, 5)
           .forEach(p => {
             const pilot = getPilot(p.pilotId);
             const best = isFinite(p.bestLap) ? fmt(p.bestLap) : "--";
@@ -3794,25 +3816,22 @@
 
         ctx.fillStyle = "#ffb15a";
         ctx.font = "700 32px 'Segoe UI'";
-        ctx.fillText("Detalle de tandas", 110, 1510);
-        let detailY = 1550;
-        let detailCount = 0;
-        for (let ti = 0; ti < turns.length && detailCount < 5; ti++) {
-          const turn = turns[ti];
-          const pilot = getPilot(turn.pilotId);
-          const laps = Array.isArray(turn.laps) ? turn.laps : [];
-          const bestTurn = laps.length ? Math.min(...laps.map(lp => lp.totalMs)) : NaN;
-          ctx.fillStyle = "#f0ecff";
-          ctx.font = "600 23px 'Segoe UI'";
-          ctx.fillText((pilot ? pilot.name : "Piloto") + " T" + (turn.heatIndex || 1) + " | V:" + laps.length + " | Best: " + (isFinite(bestTurn) ? fmt(bestTurn) : "--") + " | F:" + (turn.falseStarts || 0), 122, detailY);
-          detailY += 30;
-          detailCount += 1;
+        ctx.fillText("Detalle completo de la sesion", 110, pilotY + 16);
+        let detailY = pilotY + 56;
+        for (let i = 0; i < detailRows.length; i++) {
+          if (detailY > contentBottom) break;
+          const row = detailRows[i];
+          const isHeader = row[0] !== " ";
+          ctx.fillStyle = isHeader ? "#f0ecff" : "#c9c1e3";
+          ctx.font = isHeader ? "600 22px 'Segoe UI'" : "500 20px 'Segoe UI'";
+          ctx.fillText(row, 122, detailY);
+          detailY += isHeader ? 32 : 28;
         }
 
-        if (turns.length > detailCount) {
-          ctx.fillStyle = "#c9c1e3";
-          ctx.font = "500 20px 'Segoe UI'";
-          ctx.fillText("+" + (turns.length - detailCount) + " tandas mas en detalle dentro de la app", 122, Math.min(detailY + 6, 1655));
+        if (detailRows.length && detailY > contentBottom) {
+          ctx.fillStyle = "#ffcfb0";
+          ctx.font = "600 20px 'Segoe UI'";
+          ctx.fillText("Sesion muy larga: exporta desde historial para ver el 100% del detalle.", 122, contentBottom - 8);
         }
 
         const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png", 0.95));
