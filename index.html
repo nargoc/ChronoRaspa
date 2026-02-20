@@ -3638,10 +3638,15 @@
       function buildShareText(rally) {
         const lines = [];
         const track = getTrack(rally.trackId);
+        const turns = Array.isArray(rally.turns) ? rally.turns : [];
+        const byPilot = rally.summary && rally.summary.byPilot ? rally.summary.byPilot : {};
         lines.push("Scalex Rally - " + rally.name);
         lines.push("Track: " + (track ? track.name : "--"));
         lines.push("Tipo: " + rally.type);
         lines.push("Fecha: " + rally.createdAt);
+        lines.push("Penalizacion salida falsa: +" + (rally.penaltySec || 0) + "s");
+        lines.push("Tandas: " + turns.length);
+        lines.push("Pilotos: " + Object.keys(byPilot).length);
         lines.push("");
         lines.push("Ranking mejor vuelta:");
         rally.summary.bestRanking.forEach(r => {
@@ -3654,6 +3659,33 @@
           const p = getPilot(r.pilotId);
           lines.push(r.pos + ". " + (p ? p.name : "Piloto") + " - " + r.value + " pts");
         });
+
+        lines.push("");
+        lines.push("Resumen por piloto:");
+        Object.values(byPilot)
+          .sort((a, b) => (b.points || 0) - (a.points || 0))
+          .forEach(p => {
+            const pilot = getPilot(p.pilotId);
+            const best = isFinite(p.bestLap) ? fmt(p.bestLap) : "--";
+            const avg = isFinite(p.avgLap) ? fmt(p.avgLap) : "--";
+            lines.push((pilot ? pilot.name : "Piloto") + " | Vueltas: " + (p.laps ? p.laps.length : 0) + " | Mejor: " + best + " | Media: " + avg + " | Falsas: " + (p.falseStarts || 0) + " | Puntos: " + (p.points || 0));
+          });
+
+        lines.push("");
+        lines.push("Detalle completo de tandas:");
+        turns.forEach(turn => {
+          const pilot = getPilot(turn.pilotId);
+          const laps = Array.isArray(turn.laps) ? turn.laps : [];
+          lines.push((pilot ? pilot.name : "Piloto") + " - Tanda " + (turn.heatIndex || 1) + " - Vueltas: " + laps.length + " - Falsas: " + (turn.falseStarts || 0));
+          if (!laps.length) {
+            lines.push("  Sin vueltas registradas");
+            return;
+          }
+          laps.forEach((lap, i) => {
+            lines.push("  V" + (i + 1) + ": raw " + fmt(lap.rawMs) + " | pen " + (lap.penaltyMs ? ("+" + fmt(lap.penaltyMs)) : "-") + " | total " + fmt(lap.totalMs));
+          });
+        });
+
         return lines.join("\n");
       }
 
@@ -3747,12 +3779,11 @@
         const file = await buildRallyCardFile(rally);
         if (file && navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
           try {
-            // Try file-only first, some targets ignore files when text is present.
-            await navigator.share({ title, files: [file] });
+            await navigator.share({ title, text, files: [file] });
             return;
           } catch {
             try {
-              await navigator.share({ title, text, files: [file] });
+              await navigator.share({ title, files: [file] });
               return;
             } catch {}
           }
